@@ -1,0 +1,19 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-image: url("images/background_pattern_green_blue.PNG");
+}
+
+#gameCanvas {
+    display: block;
+    margin: 10px auto;
+    background: black;
+}
+
+button {
+    display: block;
+    margin: 0 auto;
+}
