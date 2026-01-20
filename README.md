@@ -44,3 +44,16 @@ Functions
 !!! v0.1 - Cleaning Folders and Organisation of Files !!!
 
 (No code added or removed)
+
+--------------------------------------------------------------------
+
+!!! v0.2 - Painting blocks in the matrix when falling a gem
+
+In this update that cool "Game Over" animation will not be seen, for a greater good.
+
+Some new functions are added:
+
+* initialPosition: sets the gems on the upper region of the matrix, centered, for starting to fall again
+* setMatrixBlockColor: the core for coloring the matrix each time a gem falls, once the gem touches the vertical end of the canvas, using converts the "x" and "y" position into subindexes of the matrix, for stating the specific matrix block the color and the "blockPainted" status
+* paintMatrixBlock: when "blockPainted" is true, paints the specific block of the matrix with the color set from setMarixBlockColor
+* resetGame: rewrote the code with initialPosition and generateGemRandomColor

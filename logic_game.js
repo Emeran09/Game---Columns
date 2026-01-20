@@ -56,13 +56,8 @@ function resetGame() {
     rightpressed = false;
     leftpressed = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
-        for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
-            gem[gemColumn][gemRow].x = GEM_START_X;
-            gem[gemColumn][gemRow].y = gemRow * squareSide;
-            gem[gemColumn][gemRow].color = generateGemRandomColor(gemColors);
-        }
-    }
+    initialPosition();
+    generateGemRandomColor();
     drawMatrixVolumeEffect();
 }
 
@@ -72,6 +67,16 @@ function drawGameOver() {
     ctx.font = retroFont;
     ctx.fillStyle = "#c41010";
     ctx.fillText("GAME OVER", 8, canvas.height / 2);
+}
+
+// Function for initial position of the gem
+function initialPosition() {
+    for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+        for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+            gem[gemColumn][gemRow].x = GEM_START_X;
+            gem[gemColumn][gemRow].y = gemRow * squareSide;
+        }
+    }
 }
 
 // Function for drawing the matrix squares 3D effect
@@ -123,6 +128,33 @@ function drawGems() {
     }
 }
 
+// Function for setting the matrix blocks with color
+function setMatrixBlockColor() {
+    for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+        for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+            let roundXPosition = Math.floor(gem[gemColumn][gemRow].x / squareSide);
+            let roundYPosition = Math.floor(gem[gemColumn][gemRow].y / squareSide);
+            matrix[roundXPosition][roundYPosition].color = gem[gemColumn][gemRow].color;
+            matrix[roundXPosition][roundYPosition].blockPainted = true;
+        }
+    }
+}
+
+// Function for painting and keeping the blocks of the amtrix drawn with color
+function paintMatrixBlock() {
+    for (let matrixColumn = 0; matrixColumn < MAX_MATRIX_COLUMNS; matrixColumn++) {
+        for (let matrixRow = 0; matrixRow < MAX_MATRIX_ROWS; matrixRow++) {
+            if (matrix[matrixColumn][matrixRow].blockPainted) {
+                ctx.beginPath();
+                ctx.fillStyle = matrix[matrixColumn][matrixRow].color;
+                ctx.fillRect(matrix[matrixColumn][matrixRow].x, matrix[matrixColumn][matrixRow].y, squareSide, squareSide);
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+    }
+}
+
 // Function for horizontal movement of the gems
 function horizontalMovement() {
     for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
@@ -140,14 +172,16 @@ function horizontalMovement() {
 
 // Function for vertical movement of the gem
 function fallingGem() {
-    for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
-        for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
-            if (gem[0][2].y + squareSide - dyGem < canvas.height) {
-                gem[gemColumn][gemRow].y += dyGem
-            } else if (!gameOver) {
-                gameOver = true;
+    if (gem[0][2].y + squareSide - dyGem < canvas.height) {
+        for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+            for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+                gem[gemColumn][gemRow].y += dyGem;
             }
         }
+    } else {
+        setMatrixBlockColor();
+        initialPosition();
+        setGemRandomColor();
     }
 }
 
@@ -167,6 +201,8 @@ function drawMotion() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     drawMatrixVolumeEffect();
+
+    paintMatrixBlock();
 
     drawGems();
 
