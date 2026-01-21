@@ -43,10 +43,14 @@ for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
 // Variables right/left buttons
 let rightpressed = false;
 let leftpressed = false;
+const ARROW_RIGHT = "ArrowRight";
+const ARROW_LEFT = "ArrowLeft";
+const RIGHT = "Right";
+const LEFT = "Left";
 
 // Variables GAME OVER
 let gameOver = false;
-const retroFont = "32px 'Press Start 2P'";
+const fontGameOver = "32px 'Press Start 2P'";
 
 // ------------------ FUNCTIONS ----------------
 
@@ -64,7 +68,7 @@ function resetGame() {
 // Function draw Game Over
 function drawGameOver() {
     ctx.imageSmoothingEnabled = false;
-    ctx.font = retroFont;
+    ctx.font = fontGameOver;
     ctx.fillStyle = "#c41010";
     ctx.fillText("GAME OVER", 8, canvas.height / 2);
 }
@@ -113,8 +117,6 @@ function setGemRandomColor() {
     }
 }
 
-setGemRandomColor(); // to have an initial color for each gem
-
 // Function for drawing the gem
 function drawGems() {
     for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
@@ -140,7 +142,7 @@ function setMatrixBlockColor() {
     }
 }
 
-// Function for painting and keeping the blocks of the amtrix drawn with color
+// Function for painting and keeping the blocks of the matrix drawn with color
 function paintMatrixBlock() {
     for (let matrixColumn = 0; matrixColumn < MAX_MATRIX_COLUMNS; matrixColumn++) {
         for (let matrixRow = 0; matrixRow < MAX_MATRIX_ROWS; matrixRow++) {
@@ -162,9 +164,12 @@ function horizontalMovement() {
             if (rightpressed) {
                 gem[gemColumn][gemRow].x += dxGem;
                 gem[gemColumn][gemRow].x = Math.min(gem[gemColumn][gemRow].x, canvas.width - dxGem);
-            } else if (leftpressed) {
+                return;
+            }
+            if (leftpressed) {
                 gem[gemColumn][gemRow].x -= dxGem;
                 gem[gemColumn][gemRow].x = Math.max(gem[gemColumn][gemRow].x, 0);
+                return;
             }
         }
     }
@@ -172,7 +177,8 @@ function horizontalMovement() {
 
 // Function for vertical movement of the gem
 function fallingGem() {
-    if (gem[0][2].y + squareSide - dyGem < canvas.height) {
+    const fallingGemLimitCanvas = gem[0][2].y + squareSide - dyGem < canvas.height;
+    if (fallingGemLimitCanvas) {
         for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
             for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
                 gem[gemColumn][gemRow].y += dyGem;
@@ -218,23 +224,24 @@ document.addEventListener("keydown", keyDownHandler);
 document.addEventListener("keyup", keyUpHandler);
 
 function keyDownHandler(event) {
-    if (event.key === "Right" || event.key === "ArrowRight") {
+    if (event.key === RIGHT || event.key === ARROW_RIGHT) {
         rightpressed = true;
-    } else if (event.key === "Left" || event.key === "ArrowLeft") {
+    } else if (event.key === LEFT || event.key === ARROW_LEFT) {
         leftpressed = true;
     }
 }
 
 function keyUpHandler(event) {
-    if (event.key === "Right" || event.key === "ArrowRight") {
+    if (event.key === RIGHT || event.key === ARROW_RIGHT) {
         rightpressed = false;
-    } else if (event.key === "Left" || event.key === "ArrowLeft") {
+    } else if (event.key === LEFT || event.key === ARROW_LEFT) {
         leftpressed = false;
     }
 }
 
 // Function start game
 function startGame() {
+    setGemRandomColor();
     drawMotion();
 }
 

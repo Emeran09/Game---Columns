@@ -18,12 +18,12 @@ Detail of the initial functions, constants and variables in "logic_game.js":
 
 Variables
 
-* Canvas variables
+* Canvas
 * Matrix variables for 3D effect and 2D 6x14 object matrix creation
-* "requestAnimationFrame" variable
-* Gems variables (1x3 2D object matrix)
-* Game Over variables
-* Right and left movement variables
+* "requestAnimationFrame"
+* Gems (1x3 2D object matrix)
+* Game Over
+* Right and left movement
 
 Functions
 
@@ -47,13 +47,30 @@ Functions
 
 --------------------------------------------------------------------
 
-!!! v0.2 - Painting blocks in the matrix when falling a gem
+!!! v0.2 - Painting blocks in the matrix when falling a gem !!!
 
 In this update that cool "Game Over" animation will not be seen, for a greater good.
 
 Some new functions are added:
 
 * initialPosition: sets the gems on the upper region of the matrix, centered, for starting to fall again
-* setMatrixBlockColor: the core for coloring the matrix each time a gem falls, once the gem touches the vertical end of the canvas, using converts the "x" and "y" position into subindexes of the matrix, for stating the specific matrix block the color and the "blockPainted" status
-* paintMatrixBlock: when "blockPainted" is true, paints the specific block of the matrix with the color set from setMarixBlockColor
+* setMatrixBlockColor: the core for coloring the matrix each time a gem falls, once the gem touches the vertical end of the canvas, converts the "x" and "y" position into subindexes of the matrix, for stating the specific matrix block color and the "blockPainted" status
+* paintMatrixBlock: when "blockPainted" is true, paints the specific block of the matrix with the color set from setMatrixBlockColor
 * resetGame: rewrote the code with initialPosition and generateGemRandomColor
+
+--------------------------------------------------------------------
+
+!!! v0.3 - Minor code improvements & organization !!!
+
+After a quick review, some minor changes to the actual code were added:
+
+Variables
+
+* created the constants LEFT, RIGHT, ARROW_LEFT, ARROW_RIGHT for the keyUpHandler and keyDownHandler, for storing the same values stated as strings (better practice)
+* renamed the font from Game Over animation from "retroFont" as "fontGameOver"
+
+Functions
+
+* set the function setGemRandomColor inside the startGame function, instead of floating in the middle of the code
+* set as a constant the condition to keep the gem falling inside the fallingGem function to make it easier to read
+* convert the "if / else if" from horizontalMovement in two separate "if" statements
