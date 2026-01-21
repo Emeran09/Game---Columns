@@ -60,7 +60,7 @@ Some new functions are added:
 
 --------------------------------------------------------------------
 
-!!! v0.3 - Minor code improvements & organization !!!
+!!! v0.3 - Minor code improvements !!!
 
 After a quick review, some minor changes to the actual code were added:
 
@@ -74,3 +74,7 @@ Functions
 * set the function setGemRandomColor inside the startGame function, instead of floating in the middle of the code
 * set as a constant the condition to keep the gem falling inside the fallingGem function to make it easier to read
 * convert the "if / else if" from horizontalMovement in two separate "if" statements
+
+Others
+
+* Corrected some spelling msitakes in the readme and code (comments)
