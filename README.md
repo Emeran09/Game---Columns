@@ -78,3 +78,33 @@ Functions
 Others
 
 * Corrected some spelling msitakes in the readme and code (comments)
+
+--------------------------------------------------------------------
+
+!!! v0.4 - Separating render functions from logic functions (time dependant)
+
+Big improvement in the code. Until now, all the functions for the movement of the gems (fallingGem and horizontalMovement) were not dependant of time, but of the refreshment of the speed of "animationRequestFrame" from drawMotion. The falling speed of the gem and its horizontal movement was uncontrollable. Moreover, adding a new feature to the gem, the capability of swapping its color between the gems, it was clear that something was missing: the dependance of time factors and not the refreshment speed.
+
+Time variables for a time dependency inside drawMotion are created, new constants and variables for each modified function also, and adding the swapGemColor function
+
+Variables and constants
+
+* nowTime: actual time in the iteration
+* lastTime: previously saved time in the iteration
+* dt: difference of time between nowTime and lastTime
+
+* for setting a value which triggers the time-dependant functions: HORIZONTAL_MOV_STEP, SWAP_GEM_COLOR_STEP, FALLING_GEM_STEP
+* creation of an accumulator in each function to trigger the steps based on the increase of "dt": horizontalMovementAccumulator, swapGemColorAccumulator, fallingGemAccumulator
+* creation of a constant to regulate how fast each accumulator increases its value: HORIZONTAL_MOV_SPEED, SWAP_GEM_COLOR_SPEED, FALLING_GEM_SPEED
+
+* created the constants Z and X for the keyUpHandler and keyDownHandler functions, storing the values of the letters as strings
+* for the swapGemColor function, created the variables zpressed and xpressed to enable the functionality of swapping color by pressing the "z" or "x" buttons
+
+Functions
+
+* creation of the timestamp function to obtain a time reference to use to create the time dependency of the functions, it uses "performance.now()" to create a first time reference in modern web browsers, and "date.now()" in older ones, which allows the function to be processed in all cases
+* deleted the "returns" from horizontalMovement (it only run the first value of each double-for loop)
+* creation of the function swapGemColor, for swapping the colors of the gems, and added in drawMotion
+* horizontalMovement, swapGemColor and fallingGem are now time dependant functions
+* due to the new dependency of time in fallingGem, and give a more retro feeling to its falling movement, increased the travelled step from squareSide/10 to squareside/2
+* after lowering the falling speed in fallingGem, it has been erased the "dyGem" from the if condition that allows the movement, as the gem block did not collide with the end of the canvas properly (the block surpassed the limit of the canvas)

@@ -27,7 +27,7 @@ let myReq = 0;
 
 // Variables Gems
 let dxGem = squareSide;
-let dyGem = squareSide / 10;
+let dyGem = squareSide / 2;
 const MAX_GEM_COLUMNS = 1;
 const MAX_GEM_ROWS = 3;
 const GEM_START_X = 100;
@@ -43,16 +43,45 @@ for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
 // Variables right/left buttons
 let rightpressed = false;
 let leftpressed = false;
+let zpressed = false;
+let xpressed = false;
 const ARROW_RIGHT = "ArrowRight";
 const ARROW_LEFT = "ArrowLeft";
 const RIGHT = "Right";
 const LEFT = "Left";
+const Z = "z";
+const X = "x";
 
 // Variables GAME OVER
 let gameOver = false;
 const fontGameOver = "32px 'Press Start 2P'";
 
+// Variables time
+let lastTime = 0;
+let nowTime = 0;
+let dt = 0;
+
+// Variables and constants for speed regulation in fallingGem
+const FALLING_GEM_STEP = 0.5;
+const FALLING_GEM_SPEED = 1;
+let fallingGemAccumulator = 0;
+
+// Variables and constants for control regulation in horizontalMovement
+const HORIZONTAL_MOV_STEP = 0.1;
+const HORIZONTAL_MOV_SPEED = 2;
+let horizontalMovementAccumulator = 0;
+
+// Variables and constant for gem control in swapGemColor
+const SWAP_GEM_COLOR_STEP = 0.2;
+const SWAP_GEM_COLOR_SPEED = 1.1;
+let swapGemColorAccumulator = 0;
+
 // ------------------ FUNCTIONS ----------------
+
+// Function timestamp (obtaining the time time from the browser or in old computers from Unix)
+function timestamp() {
+    return window.performance && window.performance.now ? window.performance.now() : new Date().getTime();
+};
 
 // Function reset game
 function resetGame() {
@@ -115,6 +144,9 @@ function setGemRandomColor() {
             gem[gemColumn][gemRow].color = generateGemRandomColor(gemColors);
         }
     }
+    console.log("Gem color 1: ", gem[0][0].color);
+    console.log("Gem color 2: ", gem[0][1].color);
+    console.log("Gem color 3: ", gem[0][2].color);
 }
 
 // Function for drawing the gem
@@ -158,36 +190,80 @@ function paintMatrixBlock() {
 }
 
 // Function for horizontal movement of the gems
-function horizontalMovement() {
-    for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
-        for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
-            if (rightpressed) {
-                gem[gemColumn][gemRow].x += dxGem;
-                gem[gemColumn][gemRow].x = Math.min(gem[gemColumn][gemRow].x, canvas.width - dxGem);
-                return;
-            }
-            if (leftpressed) {
-                gem[gemColumn][gemRow].x -= dxGem;
-                gem[gemColumn][gemRow].x = Math.max(gem[gemColumn][gemRow].x, 0);
-                return;
+function horizontalMovement(dt) {
+
+    horizontalMovementAccumulator += dt * HORIZONTAL_MOV_SPEED;
+
+    if (horizontalMovementAccumulator >= HORIZONTAL_MOV_STEP) {
+
+        horizontalMovementAccumulator = 0;
+
+        for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+            for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+                if (rightpressed) {
+                    gem[gemColumn][gemRow].x += dxGem;
+                    gem[gemColumn][gemRow].x = Math.min(gem[gemColumn][gemRow].x, canvas.width - dxGem);
+                }
+                if (leftpressed) {
+                    gem[gemColumn][gemRow].x -= dxGem;
+                    gem[gemColumn][gemRow].x = Math.max(gem[gemColumn][gemRow].x, 0);
+                }
             }
         }
     }
 }
 
-// Function for vertical movement of the gem
-function fallingGem() {
-    const fallingGemLimitCanvas = gem[0][2].y + squareSide - dyGem < canvas.height;
-    if (fallingGemLimitCanvas) {
-        for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
-            for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
-                gem[gemColumn][gemRow].y += dyGem;
-            }
+// Function for changing the color of the gems in the block
+function swapGemColor(dt) {
+
+    swapGemColorAccumulator += dt * SWAP_GEM_COLOR_SPEED;
+
+    if (swapGemColorAccumulator >= SWAP_GEM_COLOR_STEP) {
+
+        swapGemColorAccumulator = 0;
+
+        if (zpressed) {
+            let storeTempColorZ = gem[0][0].color;
+            gem[0][0].color = gem[0][1].color;
+            console.log("Z color 1: ", gem[0][0].color);
+            gem[0][1].color = gem[0][2].color;
+            console.log("Z color 2: ", gem[0][1].color);
+            gem[0][2].color = storeTempColorZ;
+            console.log("Z color 3: ", gem[0][2].color);
         }
-    } else {
-        setMatrixBlockColor();
-        initialPosition();
-        setGemRandomColor();
+        if (xpressed) {
+            let storeTempColorX = gem[0][0].color;
+            gem[0][0].color = gem[0][2].color;
+            console.log("X color 3: ", gem[0][0].color);
+            gem[0][2].color = gem[0][1].color;
+            console.log("X color 2: ", gem[0][2].color);
+            gem[0][1].color = storeTempColorX;
+            console.log("X color 1: ", gem[0][1].color);            
+        }
+    }
+}
+
+// Function for vertical movement of the gem
+function fallingGem(dt) {
+
+    fallingGemAccumulator += dt * FALLING_GEM_SPEED;
+
+    if (fallingGemAccumulator >= FALLING_GEM_STEP) {
+
+        fallingGemAccumulator = 0;
+        const fallingGemLimitCanvas = gem[0][2].y + squareSide < canvas.height;
+
+        if (fallingGemLimitCanvas) {
+            for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+                for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+                    gem[gemColumn][gemRow].y += dyGem;
+                }
+            }
+        } else {
+            setMatrixBlockColor();
+            initialPosition();
+            setGemRandomColor();
+        }
     }
 }
 
@@ -204,6 +280,10 @@ function drawMotion() {
         return;
     }
 
+    nowTime = timestamp();
+    dt = (nowTime - lastTime) / 1000;
+    lastTime = nowTime;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     drawMatrixVolumeEffect();
@@ -212,14 +292,16 @@ function drawMotion() {
 
     drawGems();
 
-    horizontalMovement();
+    swapGemColor(dt);
 
-    fallingGem();
+    horizontalMovement(dt);
+
+    fallingGem(dt);
 
     myReq = requestAnimationFrame(drawMotion);
 }
 
-// Key Down/Up events
+// Key events
 document.addEventListener("keydown", keyDownHandler);
 document.addEventListener("keyup", keyUpHandler);
 
@@ -228,6 +310,10 @@ function keyDownHandler(event) {
         rightpressed = true;
     } else if (event.key === LEFT || event.key === ARROW_LEFT) {
         leftpressed = true;
+    } else if (event.key === Z) {
+        zpressed = true;
+    } else if (event.key === X) {
+        xpressed = true;
     }
 }
 
@@ -236,6 +322,10 @@ function keyUpHandler(event) {
         rightpressed = false;
     } else if (event.key === LEFT || event.key === ARROW_LEFT) {
         leftpressed = false;
+    } else if (event.key === Z) {
+        zpressed = false;
+    } else if (event.key === X) {
+        xpressed = false;
     }
 }
 
