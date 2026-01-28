@@ -108,3 +108,34 @@ Functions
 * horizontalMovement, swapGemColor and fallingGem are now time dependant functions
 * due to the new dependency of time in fallingGem, and give a more retro feeling to its falling movement, increased the travelled step from squareSide/10 to squareside/2
 * after lowering the falling speed in fallingGem, it has been erased the "dyGem" from the if condition that allows the movement, as the gem block did not collide with the end of the canvas properly (the block surpassed the limit of the canvas)
+
+--------------------------------------------------------------------
+
+!!! v0.5 - Vertical collisions
+
+Implemented vertical collisions with the gems once they have reached the limit and no more collisions with the end of the canvas can occur. To do so, some changes have been made to the fallingGem function.
+
+Functions
+
+* fallingGem has been rewritten
+
+    1. All the logic is now dependant on coordinates, not position. Position is transformed to coordinates dividing by squareSide, creating:
+
+        * variable lowerGemPosition = Math.floor(gem[0][2].y / squareSide)
+        * dividing canvas.height by squareSide, we obtain MAX_MATRIX_ROWS
+        * the constraint fallingGemLimitCanvas now looks like: lowerGemPosition < MAX_MATRIX_ROWS - 1
+
+    2. Each coordinate of each gem is calculated following the same method as before, dividing by sqaureSide and rounding the result to the lower integer:
+
+        * xGemFall = Math.floor(gem[gemColumn][gemRow].x / squareSide)
+        * yGemFall = Math.floor(gem[gemColumn][gemRow].y / squareSide)
+        * To properly calculate the collision, the variable "yNextGemFall" (defined as yGemFall + 1) is created
+    
+    3. The logic when a gem reaches the end of the canvas or has a collision with another gem is now inside the double-for loop. Due to that, the execution of the setMatrixBlockColor, initialPosition and setGemRandomColor functions was repeated three times. In order to avoid that, a variable and a constant were added:
+
+        * constant MAX_ITERATION: to limit the amount of times the functions have to be executed
+        * variable counterIteration: to count the number of times the three functions have been executed
+    
+    With that, and the constraint matrixCellPainted, defined as "!matrix[xGemFall][yNextGemFall].blockPainted", combined with the variable counterIteration and the fallingGemLimitCanvas, the proper logic for reseting the gems was possible. 
+
+    4. Now the gem falls if both fallingGemLimitCanvas and matrixCellPainted conditions are met. If only one of the conditions is true, it means a collision either with the end of the canvas or another block has occured, and both conditions can never be false at the same time.

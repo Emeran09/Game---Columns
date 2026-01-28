@@ -18,7 +18,7 @@ let matrix = [];
 for (let matrixColumn = 0; matrixColumn < MAX_MATRIX_COLUMNS; matrixColumn++) {
     matrix[matrixColumn] = [];
     for (let matrixRow = 0; matrixRow < MAX_MATRIX_ROWS; matrixRow++) {
-        matrix[matrixColumn][matrixRow] = { x: matrixColumn * squareSide, y: matrixRow * squareSide, blockPainted: false, color: "black" };
+        matrix[matrixColumn][matrixRow] = { x: matrixColumn * squareSide, y: matrixRow * squareSide, color: "black", blockPainted: false };
     }
 }
 
@@ -36,7 +36,7 @@ let gem = [];
 for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
     gem[gemColumn] = [];
     for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
-        gem[gemColumn][gemRow] = { x: GEM_START_X, y: gemRow * squareSide, color: "white" };
+        gem[gemColumn][gemRow] = { x: GEM_START_X, y: gemRow * squareSide, color: "white", gemSpawn: false };
     }
 }
 
@@ -144,13 +144,11 @@ function setGemRandomColor() {
             gem[gemColumn][gemRow].color = generateGemRandomColor(gemColors);
         }
     }
-    console.log("Gem color 1: ", gem[0][0].color);
-    console.log("Gem color 2: ", gem[0][1].color);
-    console.log("Gem color 3: ", gem[0][2].color);
 }
 
 // Function for drawing the gem
 function drawGems() {
+
     for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
         for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
             ctx.beginPath();
@@ -200,10 +198,14 @@ function horizontalMovement(dt) {
 
         for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
             for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+
+                let xGemSide = Math.floor(gem[gemColumn][gemRow].x / squareSide);
+                let yGemSide = Math.floor(gem[gemColumn][gemRow].y / squareSide);
+
                 if (rightpressed) {
                     gem[gemColumn][gemRow].x += dxGem;
                     gem[gemColumn][gemRow].x = Math.min(gem[gemColumn][gemRow].x, canvas.width - dxGem);
-                }
+                 }
                 if (leftpressed) {
                     gem[gemColumn][gemRow].x -= dxGem;
                     gem[gemColumn][gemRow].x = Math.max(gem[gemColumn][gemRow].x, 0);
@@ -225,20 +227,14 @@ function swapGemColor(dt) {
         if (zpressed) {
             let storeTempColorZ = gem[0][0].color;
             gem[0][0].color = gem[0][1].color;
-            console.log("Z color 1: ", gem[0][0].color);
             gem[0][1].color = gem[0][2].color;
-            console.log("Z color 2: ", gem[0][1].color);
             gem[0][2].color = storeTempColorZ;
-            console.log("Z color 3: ", gem[0][2].color);
         }
         if (xpressed) {
             let storeTempColorX = gem[0][0].color;
             gem[0][0].color = gem[0][2].color;
-            console.log("X color 3: ", gem[0][0].color);
             gem[0][2].color = gem[0][1].color;
-            console.log("X color 2: ", gem[0][2].color);
             gem[0][1].color = storeTempColorX;
-            console.log("X color 1: ", gem[0][1].color);            
         }
     }
 }
@@ -251,18 +247,32 @@ function fallingGem(dt) {
     if (fallingGemAccumulator >= FALLING_GEM_STEP) {
 
         fallingGemAccumulator = 0;
-        const fallingGemLimitCanvas = gem[0][2].y + squareSide < canvas.height;
 
-        if (fallingGemLimitCanvas) {
-            for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
-                for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+        let lowerGemPosition = Math.floor(gem[0][2].y / squareSide);
+        let fallingGemLimitCanvas = lowerGemPosition < MAX_MATRIX_ROWS - 1;
+
+        const MAX_ITERATION = 1;
+        let counterIteration = 0;
+
+        for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+            for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+
+                let xGemFall = Math.floor(gem[gemColumn][gemRow].x / squareSide);
+                let yGemFall = Math.floor(gem[gemColumn][gemRow].y / squareSide);
+                let yNextGemFall = yGemFall + 1;
+
+                let matrixCellPainted = (!matrix[xGemFall][yNextGemFall].blockPainted);
+
+                if (fallingGemLimitCanvas && matrixCellPainted) {
                     gem[gemColumn][gemRow].y += dyGem;
                 }
+                if ((!fallingGemLimitCanvas || !matrixCellPainted) && counterIteration < MAX_ITERATION) {
+                    setMatrixBlockColor();
+                    initialPosition();
+                    setGemRandomColor();
+                    counterIteration++;
+                }
             }
-        } else {
-            setMatrixBlockColor();
-            initialPosition();
-            setGemRandomColor();
         }
     }
 }
@@ -332,6 +342,7 @@ function keyUpHandler(event) {
 // Function start game
 function startGame() {
     setGemRandomColor();
+    initialPosition();
     drawMotion();
 }
 
