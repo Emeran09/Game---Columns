@@ -81,7 +81,7 @@ Others
 
 --------------------------------------------------------------------
 
-!!! v0.4 - Separating render functions from logic functions (time dependant)
+!!! v0.4 - Separating render functions from logic functions (time dependant) !!!
 
 Big improvement in the code. Until now, all the functions for the movement of the gems (fallingGem and horizontalMovement) were not dependant of time, but of the refreshment of the speed of "animationRequestFrame" from drawMotion. The falling speed of the gem and its horizontal movement was uncontrollable. Moreover, adding a new feature to the gem, the capability of swapping its color between the gems, it was clear that something was missing: the dependance of time factors and not the refreshment speed.
 
@@ -111,7 +111,7 @@ Functions
 
 --------------------------------------------------------------------
 
-!!! v0.5 - Vertical collisions
+!!! v0.5 - Vertical collisions !!!
 
 Implemented vertical collisions with the gems once they have reached the limit and no more collisions with the end of the canvas can occur. To do so, some changes have been made to the fallingGem function.
 
@@ -139,3 +139,46 @@ Functions
     With that, and the constraint matrixCellPainted, defined as "!matrix[xGemFall][yNextGemFall].blockPainted", combined with the variable counterIteration and the fallingGemLimitCanvas, the proper logic for reseting the gems was possible. 
 
     4. Now the gem falls if both fallingGemLimitCanvas and matrixCellPainted conditions are met. If only one of the conditions is true, it means a collision either with the end of the canvas or another block has occured, and both conditions can never be false at the same time.
+
+--------------------------------------------------------------------
+
+!!! v0.6 - Horizontal collisions !!!
+
+Implemented horizontal collisions between the gems and the blocks that have reached either the end or collision with another block. That part was tricky, and probably the code can be optimized, but a first version of the horizontal collisions is programmed.
+
+As in the previous case, additions to the actual code have been made to the horizontalMovement function:
+
+Variables
+
+As with fallingGem, the distances in pixels have been converted to cell position dividing by squareSide:
+
+* xGemSide = Math.floor(gem[gemColumn][gemRow].x / squareSide)
+* yGemSide = Math.floor(gem[gemColumn][gemRow].y / squareSide)
+* In order to calculate the lateral collision:
+    * xGemSideRight = Math.min(xGemSide + 1, MAX_MATRIX_COLUMNS - 1);
+    * xGemSideLeft = Math.max(0, xGemSide -1);
+* Also, to calculate the state of the next gem, the next Y position is calculated as:
+    * yNextGem = Math.min(yGemSide +1, MAX_MAYRIX_ROWS - 2);
+
+Conditions
+
+1. With the conversion of the gems distances into positions, all the evaluations are done in each position, but the gems while falling travel the distance of a half matrix cell. Due to that, when the falling gem is next to a painted gem in the matrix, if the falling gem is not in the same exact y coordinate, it does not collide, allowing to overlap the falling and painted gem. In order to avoid that, a condition that checks if the gem is in that half position is created:
+
+    * halfBlockDown = (gem[gemColumn][gemRow].y % squareSide) !== 0;
+
+2. The importance in the horizontal collisions is to check if the next gem on both sides is painted, and also the if the next gem below and on both sides is painted. Using the previous xGemSideRight, xGemSideLeft and yNextGem variables, these four conditions are created:
+
+    * rightMatrixCellPainted = matrix[xGemSideRight][yGemSide].blockPainted;
+    * rightNextMatrixCellPainted = matrix[xGemSideRight][yNextGem].blockPainted;
+    * leftMatrixCellPainted = matrix[xGemSideLeft][yGemSide].blockPainted;
+    * leftNextMatrixCellPainted = matrix[xGemSideLeft][yNextGem].blockPainted;
+
+Function
+
+The overall logic of the function does not change, it is maintained with additions:
+
+    1. The logic to move to the right or to the left is converted to cell positions instead of distances, and now also has dependency with rightMatrixCellPainted and leftMatrixCellPainted. It is the second part of the overall condition of the movement.
+
+    2. The first part of the logic movement is the most restrictive one: if the right/left buttons are pressed, the falling gem is in the half of any matrix block, and also if any matrix cell on both sides and any matrix cell in the next position on both sides is painted.
+
+    3. Last part is a simplified version of point two: if the right/left buttons are pressed and any matrix cell on both sides is painted. This is the third condition as if the first one, which shares half of the conditions is not met, we do not need to check either if the next block is painted (because it will be) or ir the block is half way down, as it is in the same row and for sure the collision condition will be met.

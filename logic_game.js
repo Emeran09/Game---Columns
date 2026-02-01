@@ -201,14 +201,44 @@ function horizontalMovement(dt) {
 
                 let xGemSide = Math.floor(gem[gemColumn][gemRow].x / squareSide);
                 let yGemSide = Math.floor(gem[gemColumn][gemRow].y / squareSide);
+                let xGemSideRight = Math.min(xGemSide + 1, MAX_MATRIX_COLUMNS - 1);
+                let xGemSideLeft = Math.max(0, xGemSide - 1);
+                let yNextGem = Math.min(yGemSide + 1, MAX_MATRIX_ROWS - 1);
 
-                if (rightpressed) {
-                    gem[gemColumn][gemRow].x += dxGem;
-                    gem[gemColumn][gemRow].x = Math.min(gem[gemColumn][gemRow].x, canvas.width - dxGem);
-                 }
-                if (leftpressed) {
-                    gem[gemColumn][gemRow].x -= dxGem;
-                    gem[gemColumn][gemRow].x = Math.max(gem[gemColumn][gemRow].x, 0);
+                let halfBlockDown = (gem[gemColumn][gemRow].y % squareSide) !== 0;
+
+                let rightMatrixCellPainted = matrix[xGemSideRight][yGemSide].blockPainted;
+                let rightNextMatrixCellPainted = matrix[xGemSideRight][yNextGem].blockPainted;
+                let leftMatrixCellPainted = matrix[xGemSideLeft][yGemSide].blockPainted;
+                let leftNextMatrixCellPainted = matrix[xGemSideLeft][yNextGem].blockPainted;
+
+                
+                if (rightpressed && (rightNextMatrixCellPainted || rightNextMatrixCellPainted) && halfBlockDown) {
+                    gem[0][0].x = xGemSide * squareSide;
+                    gem[0][1].x = xGemSide * squareSide;
+                    gem[0][2].x = xGemSide * squareSide;
+                } else if (rightpressed && !rightMatrixCellPainted) {
+                    xGemSide += 1;
+                    xGemSide = Math.min(xGemSide, MAX_MATRIX_COLUMNS - 1);
+                    gem[gemColumn][gemRow].x = xGemSide * squareSide;
+                } else if (rightpressed && rightMatrixCellPainted) {
+                    gem[0][0].x = xGemSide * squareSide;
+                    gem[0][1].x = xGemSide * squareSide;
+                    gem[0][2].x = xGemSide * squareSide;
+                }
+
+                if (leftpressed && (leftMatrixCellPainted || leftNextMatrixCellPainted) && halfBlockDown) {
+                    gem[0][0].x = xGemSide * squareSide;
+                    gem[0][1].x = xGemSide * squareSide;
+                    gem[0][2].x = xGemSide * squareSide;
+                } else if (leftpressed && !leftMatrixCellPainted) {
+                    xGemSide -= 1;
+                    xGemSide = Math.max(xGemSide, 0);
+                    gem[gemColumn][gemRow].x = xGemSide * squareSide;
+                } else if (leftpressed && leftMatrixCellPainted) {
+                    gem[0][0].x = xGemSide * squareSide;
+                    gem[0][1].x = xGemSide * squareSide;
+                    gem[0][2].x = xGemSide * squareSide;
                 }
             }
         }
