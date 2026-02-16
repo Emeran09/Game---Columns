@@ -182,3 +182,27 @@ The overall logic of the function does not change, it is maintained with additio
     2. The first part of the logic movement is the most restrictive one: if the right/left buttons are pressed, the falling gem is in the half of any matrix block, and also if any matrix cell on both sides and any matrix cell in the next position on both sides is painted.
 
     3. Last part is a simplified version of point two: if the right/left buttons are pressed and any matrix cell on both sides is painted. This is the third condition as if the first one, which shares half of the conditions is not met, we do not need to check either if the next block is painted (because it will be) or ir the block is half way down, as it is in the same row and for sure the collision condition will be met.
+    
+    --------------------------------------------------------------------
+
+    !!! v0.7 - Gem clearing & Gem placing after clearing !!!
+
+    This is a major update, which finishes the logic of the game. Functions to erase combinations of 3, 4 or 5 gems in vertical, horizontal and diagonally are created, as well as a function to make the gems that have not been erased fall.
+
+    Functions
+
+    * fallingGem has been slightly modified, canging the name of the "matrixCellPainted" condition to "matrixNextCellPainted", giving more clarity to what the actual condition means and refers to. Also, the values have been inverted (the sign ! has changed positions with the rest of the conditions affected).
+
+    * New functions: gems now can be eliminated via:
+        
+        * verticalGemClear: eliminates gems in the same column, vertically.
+
+        * horizontalGemClear: eliminates gems in the same row, horizontally.
+
+        * diagonalUpRightGemClear: eliminates gems diagonally, going upwards and to the right.
+
+        * diagonalDownRightGemClear: eliminates gems diagonally, goind downwards and to the right.
+
+    * After any of those functions erase a gem, the new function "setUnremovedGems" moves downwards the remaining gems.
+
+    * Finally, the new function "updateMatrixAfterClear", inside "fallingGem", keeps updating those new five functions until all of them are false, in order to ensure possible combos and move downwards all the remaining gems.
