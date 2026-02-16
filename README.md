@@ -177,11 +177,11 @@ Function
 
 The overall logic of the function does not change, it is maintained with additions:
 
-    1. The logic to move to the right or to the left is converted to cell positions instead of distances, and now also has dependency with rightMatrixCellPainted and leftMatrixCellPainted. It is the second part of the overall condition of the movement.
+1. The logic to move to the right or to the left is converted to cell positions instead of distances, and now also has dependency with rightMatrixCellPainted and leftMatrixCellPainted. It is the second part of the overall condition of the movement.
 
-    2. The first part of the logic movement is the most restrictive one: if the right/left buttons are pressed, the falling gem is in the half of any matrix block, and also if any matrix cell on both sides and any matrix cell in the next position on both sides is painted.
+2. The first part of the logic movement is the most restrictive one: if the right/left buttons are pressed, the falling gem is in the half of any matrix block, and also if any matrix cell on both sides and any matrix cell in the next position on both sides is painted.
 
-    3. Last part is a simplified version of point two: if the right/left buttons are pressed and any matrix cell on both sides is painted. This is the third condition as if the first one, which shares half of the conditions is not met, we do not need to check either if the next block is painted (because it will be) or ir the block is half way down, as it is in the same row and for sure the collision condition will be met.
+3. Last part is a simplified version of point two: if the right/left buttons are pressed and any matrix cell on both sides is painted. This is the third condition as if the first one, which shares half of the conditions is not met, we do not need to check either if the next block is painted (because it will be) or ir the block is half way down, as it is in the same row and for sure the collision condition will be met.
     
 --------------------------------------------------------------------
 
