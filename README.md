@@ -206,3 +206,25 @@ Functions
 * After any of those functions erase a gem, the new function "setUnremovedGems" moves downwards the remaining gems.
 
 * Finally, the new function "updateMatrixAfterClear", inside "fallingGem", keeps updating those new five functions until all of them are false, in order to ensure possible combos and move downwards all the remaining gems.
+
+--------------------------------------------------------------------
+
+!!! v0.8 - Adding Game Over logic !!!
+
+After v0.0 and v0.1, no proper Game over logic had been added. Minor changes to the functions were made to add the trigger condition. The actual logic allows to set gems up to the 0 Y position in all columns except for the spawn column. The Game Over condition is triggered if any of the three blocks where the gem is initially set has the property blockPainted.
+
+Constants
+
+* X_GAME_OVER sets the column where the gem is spawned
+
+Functions
+
+* The trigger condition has been added to "initialPosition" function
+
+* In "fallingGem", the functions "setGemRandomColor" and "initialPosition" have switched places
+
+* Other small changes done while troubleshooting:
+
+    * In the function "resetGame", when calling the "generateGemRandomColor" was missing the input
+
+    * In line 519, the font used for the "drawGameOver" function had an old name

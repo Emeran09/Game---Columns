@@ -53,6 +53,7 @@ const Z = "z";
 const X = "x";
 
 // Variables GAME OVER
+const X_GAME_OVER = GEM_START_X / squareSide;
 let gameOver = false;
 const fontGameOver = "32px 'Press Start 2P'";
 
@@ -90,7 +91,9 @@ function resetGame() {
     leftpressed = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     initialPosition();
-    generateGemRandomColor();
+    console.log("antes de que pete");
+    generateGemRandomColor(gemColors);
+    console.log("se arregló!!");
     drawMatrixVolumeEffect();
 }
 
@@ -106,6 +109,12 @@ function drawGameOver() {
 function initialPosition() {
     for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
         for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+
+            if (matrix[X_GAME_OVER][gemRow].blockPainted) {
+                gameOver = true;
+                break;
+            }
+
             gem[gemColumn][gemRow].x = GEM_START_X;
             gem[gemColumn][gemRow].y = gemRow * squareSide;
         }
@@ -163,6 +172,7 @@ function drawGems() {
 function setMatrixBlockColor() {
     for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
         for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+
             let roundXPosition = Math.floor(gem[gemColumn][gemRow].x / squareSide);
             let roundYPosition = Math.floor(gem[gemColumn][gemRow].y / squareSide);
 
@@ -491,8 +501,8 @@ function fallingGem(dt) {
                 if ((!fallingGemLimitCanvas || matrixNextCellPainted) && counterIteration < MAX_ITERATION) {
                     setMatrixBlockColor();
                     updateMatrixAfterClear();
-                    initialPosition();
                     setGemRandomColor();
+                    initialPosition();
                     counterIteration++;
                 }
             }
@@ -506,7 +516,7 @@ function drawMotion() {
     if (gameOver) {
         cancelAnimationFrame(myReq);
         resetGame();
-        document.fonts.load(retroFont).then(() => { // ensure fonts are loaded
+        document.fonts.load(fontGameOver).then(() => { // ensure fonts are loaded
             drawGameOver();
         });
         runButton.disabled = false;
