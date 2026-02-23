@@ -7,13 +7,57 @@ body {
     background-image: url("images/background_pattern_green_blue.PNG");
 }
 
+.gameElements {
+    display: flex;
+    justify-content: center;
+    margin: 0 10px;
+}
+
+.canvasContainer {
+    display: block;
+}
+
 #gameCanvas {
     display: block;
     margin: 10px auto;
     background: black;
 }
 
-button {
+.inGameInfo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 10px;
+}
+
+#scoringBackgroundSpace {
+    display: block;
+    width: 60px;
+    height: 30px;
+    background: black;
+    color: white;
+    margin: 5px 0;
+}
+
+#numberGemsBackgroundSpace {
+    display: block;
+    width: 60px;
+    height: 30px;
+    background: black;
+    color: white;
+    margin: 5px 0;
+}
+
+#difficultyBackgroundSpace {
+    display: block;
+    width: 60px;
+    height: 30px;
+    background: black;
+    color: white;
+    margin: 5px 0;
+}
+
+#runButton {
     display: block;
     margin: 0 auto;
 }

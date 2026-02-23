@@ -228,3 +228,61 @@ Functions
     * In the function "resetGame", when calling the "generateGemRandomColor" was missing the input
 
     * In line 519, the font used for the "drawGameOver" function had an old name
+
+--------------------------------------------------------------------
+
+!!! v0.9 - Increased difficulty of the game, fast descending and real-time game data !!!
+
+Big update with new functionalities and the DOM basis of real-time information about the game for the players: 
+
+* The actual score, number of gems eliminated and the difficulty level are now visible, all the statistics are placed in the right side of the matrix (without proper format, just the information). 
+
+* The game now gets more difficult (increased speed) based on the score obtained. 
+
+* Now the playable gem can descend faster by pressing Space, which allows a more fluid gameplay during the initial levels.
+
+Constants and variables
+
+* Added constants "canvasHeight" and "canvasWidth"
+
+* Added constant "GEM_START_Y" as the initial value of Y for each playable gem
+
+* Added variable "sapcepressed" (boolean) and constant "SPACE" (with value " ") as the button used for managing the increased speed of the gem at will
+
+* Tuned the value of "SWAP_GEM_COLOR_SPEED" for a smoother change when pressing "z" or "x"
+
+* Added constants for the game score, separating vertical and horizontal points from diagonal points:
+
+    *  V_H_THREE/FOUR/FIVE_GEMS, with values 30, 45 and 60
+    *  D_THREE_FOUR_FIVE_GEMS, with values 40, 70 and 100
+
+* Added variables "score" and "totalGemsCleared", which store the actual score and number of gems eliminated, respectively
+
+* Added variables and constants for the control and logic of the game difficulty:
+
+    *  Variables "increaseSpeed", "actualScore", "previousScore", "deltaScore", "scoreAccumulator" and "difficultyCounter"
+    *  Constants "LIMIT_DIFFICULTY_UP_1", "LIMIT_DIFFICULTY_UP_2", "DIFFICULTY_TRIGGER", "DELTA_SPEED_UP" and "DELTA_SPEED_UP_HARD"
+
+Functions
+
+* Created new functions:
+
+    *  "displayScore", to write and update the scoring data
+    *  "displayNumbergemsCleared", to write and update the number of gems cleared
+    *  "displayDifficultyLevel", to write and update the difficulty level
+    *  "instantFall", which has the same logic of "fallingGem" but without the dependency of "dt" and can be toggled using the button Space
+    *  "difficultyUp", which contains the logic of the incremental difficulty level (and contains inside "displayDifficultyLevel" in order to update the difficulty level data on screen)
+
+* Modified "resetGame", adding all the nex variables of score, number of gems eliminated and difficulty controllers. Also, added a loop for resetting the properties ".blockPainted" and ".color" of each block of the matrix (created an error at some point with the logic of the function regulating the increase of the speed of the playable gem).
+
+* Added in "verticalGemClear" and "horizontalGemClear" the scoring logic for vertical and horizontal clearing, and "diagonalDownRightGemClear" and "diagonalUpRightGemClear" the scoring logic for diagonal clearing
+
+* Added in "updateatrixAfterClear" the functions "displayScore" and "displayNumberGemsCleared", in order to visualize the data after each clearing
+
+* Modified "fallingGem" adding the variable "increaseSpeed" to the formula of "fallingGemAccumulator" to icnrease the actual falling speed
+
+* Modified the main loop "drawMotion" adding a condition to trigger between "instantFall" and "fallingGem"when pressing Space
+
+* Modified the "keyUpHandler" and "keyDownHandler" with the addition of SPACE
+
+* Modified the event listener of "runButton" with the three new display functions

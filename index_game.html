@@ -13,7 +13,21 @@
 </head>
 
 <body>
-    <canvas id="gameCanvas" width="300" height="700"></canvas>
+
+    <div class="gameElements">
+
+        <div class="canvasContainer">
+            <canvas id="gameCanvas" width="300" height="700"></canvas>
+        </div>
+
+        <div class="inGameInfo">
+            <div id="scoringBackgroundSpace"></div>
+            <div id="numberGemsBackgroundSpace"></div>
+            <div id="difficultyBackgroundSpace"></div>
+        </div>
+
+    </div>
+
     <button id="runButton">Start Game</button>
 
     <script src="logic_game.js"></script>

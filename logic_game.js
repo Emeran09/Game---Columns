@@ -4,6 +4,8 @@
 // Variables Canvas
 const canvas = document.getElementById("gameCanvas")
 const ctx = canvas.getContext("2d");
+const canvasHeight = canvas.height;
+const canvasWidth = canvas.width;
 
 // Variables matrix squares 3D effect
 const squareSide = 50;
@@ -31,6 +33,7 @@ let dyGem = squareSide / 2;
 const MAX_GEM_COLUMNS = 1;
 const MAX_GEM_ROWS = 3;
 const GEM_START_X = 100;
+const GEM_START_Y = 0;
 const gemColors = ["green", "blue", "yellow", "red", "orange", "purple"];
 let gem = [];
 for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
@@ -40,17 +43,19 @@ for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
     }
 }
 
-// Variables right/left buttons
+// Variables buttons
 let rightpressed = false;
 let leftpressed = false;
 let zpressed = false;
 let xpressed = false;
+let spacepressed = false;
 const ARROW_RIGHT = "ArrowRight";
 const ARROW_LEFT = "ArrowLeft";
 const RIGHT = "Right";
 const LEFT = "Left";
 const Z = "z";
 const X = "x";
+const SPACE = " ";
 
 // Variables GAME OVER
 const X_GAME_OVER = GEM_START_X / squareSide;
@@ -74,8 +79,33 @@ let horizontalMovementAccumulator = 0;
 
 // Variables and constant for gem control in swapGemColor
 const SWAP_GEM_COLOR_STEP = 0.2;
-const SWAP_GEM_COLOR_SPEED = 1.1;
+const SWAP_GEM_COLOR_SPEED = 1.23;
 let swapGemColorAccumulator = 0;
+
+// Variables for game score
+const V_H_THREE_GEMS = 30;
+const V_H_FOUR_GEMS = 45;
+const V_H_FIVE_GEMS = 60;
+const D_THREE_GEMS = 40;
+const D_FOUR_GEMS = 70;
+const D_FIVE_GEMS = 100;
+
+// Variables for game info
+let score = 0;
+let totalGemsCleared = 0;
+
+// Variables for game difficulty
+let increaseSpeed = 0;
+let actualScore = 0;
+let previousScore = 0;
+let deltaScore = 0;
+let scoreAccumulator = 0;
+let difficultyCounter = 0;
+const LIMIT_DIFFICULTY_UP_1 = 20;
+const LIMIT_DIFFICULTY_UP_2 = 50;
+const DIFFICULTY_UP_TRIGGER = 100;
+const DELTA_SPEED_UP = 0.005;
+const DELTA_SPEED_UP_HARD = 0.1;
 
 // ------------------ FUNCTIONS ----------------
 
@@ -89,11 +119,27 @@ function resetGame() {
     gameOver = false;
     rightpressed = false;
     leftpressed = false;
+    spacepressed = false;
+    score = 0;
+    totalGemsCleared = 0;
+    increaseSpeed = 0;
+    actualScore = 0;
+    previousScore = 0;
+    deltaScore = 0;
+    scoreAccumulator = 0;
+    difficultyCounter = 0;
+
+    for (let matrixColumn = 0; matrixColumn < MAX_MATRIX_COLUMNS; matrixColumn++) {
+        for (let matrixRow = 0; matrixRow < MAX_MATRIX_ROWS; matrixRow++) {
+            matrix[matrixColumn][matrixRow].blockPainted = false;
+            matrix[matrixColumn][matrixRow].color = "black";
+        }
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     initialPosition();
-    console.log("antes de que pete");
     generateGemRandomColor(gemColors);
-    console.log("se arregló!!");
     drawMatrixVolumeEffect();
 }
 
@@ -221,13 +267,23 @@ function verticalGemClear() {
                     break;
                 }
             }
-
             // Clears the cells with the same color
             if (count >= 3) {
                 for (let i = 0; i < count; i++) {
                     matrix[matrixColumn][matrixRow + i].blockPainted = false;
                 }
                 cleared = true;
+            }
+
+            if (count === 3) {
+                score += V_H_THREE_GEMS;
+                totalGemsCleared += count;
+            } else if (count === 4) {
+                score += V_H_FOUR_GEMS;
+                totalGemsCleared += count;
+            } else if (count === 5) {
+                score += V_H_FIVE_GEMS;
+                totalGemsCleared += count;
             }
         }
     }
@@ -266,13 +322,24 @@ function horizontalGemClear() {
                 }
                 cleared = true;
             }
+
+            if (count === 3) {
+                score += V_H_THREE_GEMS;
+                totalGemsCleared += count;
+            } else if (count === 4) {
+                score += V_H_FOUR_GEMS;
+                totalGemsCleared += count;
+            } else if (count === 5) {
+                score += V_H_FIVE_GEMS;
+                totalGemsCleared += count;
+            }
         }
     }
     return cleared;
 }
 
 // Function to check the diagonal down-right
-function diagonalUpRightGemClear() {
+function diagonalDownRightGemClear() {
 
     let cleared = false;
 
@@ -303,13 +370,24 @@ function diagonalUpRightGemClear() {
                 }
                 cleared = true;
             }
+
+            if (count === 3) {
+                score += D_THREE_GEMS;
+                totalGemsCleared += count;
+            } else if (count === 4) {
+                score += D_FOUR_GEMS;
+                totalGemsCleared += count;
+            } else if (count === 5) {
+                score += D_FIVE_GEMS;
+                totalGemsCleared += count;
+            }
         }
     }
     return cleared;
 }
 
 // Function to check the diagonal up-right
-function diagonalDownRightGemClear() {
+function diagonalUpRightGemClear() {
 
     let cleared = false;
 
@@ -339,6 +417,17 @@ function diagonalDownRightGemClear() {
                     matrix[matrixColumn + i][matrixRow - i].blockPainted = false;
                 }
                 cleared = true;
+            }
+
+            if (count === 3) {
+                score += D_THREE_GEMS;
+                totalGemsCleared += count;
+            } else if (count === 4) {
+                score += D_FOUR_GEMS;
+                totalGemsCleared += count;
+            } else if (count === 5) {
+                score += D_FIVE_GEMS;
+                totalGemsCleared += count;
             }
         }
     }
@@ -387,6 +476,9 @@ function updateMatrixAfterClear() {
         somethingHappened = clearedVertical || clearedHorizontal || clearedDiagonalDR || clearedDiagonalUR || movedGemDown;
 
     } while (somethingHappened);
+
+    displayScore();
+    displayNumberGemsCleared();
 
 }
 
@@ -471,10 +563,79 @@ function swapGemColor(dt) {
     }
 }
 
+// Function for sending the gems to the end of the available space
+function instantFall() {
+    let lowerGemPosition = Math.floor(gem[0][2].y / squareSide);
+    let fallingGemLimitCanvas = lowerGemPosition < MAX_MATRIX_ROWS - 1;
+
+    const MAX_ITERATION = 1;
+    let counterIteration = 0;
+
+    for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+        for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+
+            let xGemFall = Math.floor(gem[gemColumn][gemRow].x / squareSide);
+            let yGemFall = Math.floor(gem[gemColumn][gemRow].y / squareSide);
+            let yNextGemFall = yGemFall + 1;
+            let matrixNextCellPainted = false;
+
+            if (yNextGemFall < MAX_MATRIX_ROWS) {
+                matrixNextCellPainted = matrix[xGemFall][yNextGemFall].blockPainted;
+            } else {
+                matrixNextCellPainted = true;
+            }
+
+
+            if (fallingGemLimitCanvas && !matrixNextCellPainted) {
+                gem[gemColumn][gemRow].y += dyGem;
+            }
+            if ((!fallingGemLimitCanvas || matrixNextCellPainted) && counterIteration < MAX_ITERATION) {
+                setMatrixBlockColor();
+                updateMatrixAfterClear();
+                setGemRandomColor();
+                initialPosition();
+                counterIteration++;
+            }
+        }
+    }
+}
+
+// Function for increasing the difficult depending on the score
+function difficultyUp() {
+
+    if (difficultyCounter > LIMIT_DIFFICULTY_UP_2) {
+        return;
+    }
+
+    actualScore = score;
+    deltaScore = actualScore - previousScore;
+    scoreAccumulator += deltaScore;
+    previousScore = actualScore;
+
+    let triggerSurpassed = scoreAccumulator > DIFFICULTY_UP_TRIGGER;
+    let difficultyLevelOne = difficultyCounter <= LIMIT_DIFFICULTY_UP_1;
+    let difficultyLevelTwo = difficultyCounter > LIMIT_DIFFICULTY_UP_1 && difficultyCounter < LIMIT_DIFFICULTY_UP_2;
+    let difficultyLevelThree = difficultyCounter === LIMIT_DIFFICULTY_UP_2;
+
+    if (difficultyLevelOne && triggerSurpassed) {
+        scoreAccumulator -= DIFFICULTY_UP_TRIGGER;
+        difficultyCounter++;
+        increaseSpeed += DELTA_SPEED_UP;
+    } else if (difficultyLevelTwo && triggerSurpassed) {
+        scoreAccumulator -= DIFFICULTY_UP_TRIGGER;
+        difficultyCounter++;
+    } else if (difficultyLevelThree && triggerSurpassed) {
+        increaseSpeed += DELTA_SPEED_UP_HARD;
+    }
+
+    displayDifficultyLevel();
+
+}
+
 // Function for vertical movement of the gem
 function fallingGem(dt) {
 
-    fallingGemAccumulator += dt * FALLING_GEM_SPEED;
+    fallingGemAccumulator += dt * FALLING_GEM_SPEED + increaseSpeed;
 
     if (fallingGemAccumulator >= FALLING_GEM_STEP) {
 
@@ -492,8 +653,14 @@ function fallingGem(dt) {
                 let xGemFall = Math.floor(gem[gemColumn][gemRow].x / squareSide);
                 let yGemFall = Math.floor(gem[gemColumn][gemRow].y / squareSide);
                 let yNextGemFall = yGemFall + 1;
+                let matrixNextCellPainted = false;
 
-                let matrixNextCellPainted = matrix[xGemFall][yNextGemFall].blockPainted;
+                if (yNextGemFall < MAX_MATRIX_ROWS) {
+                    matrixNextCellPainted = matrix[xGemFall][yNextGemFall].blockPainted;
+                } else {
+                    matrixNextCellPainted = true;
+                }
+
 
                 if (fallingGemLimitCanvas && !matrixNextCellPainted) {
                     gem[gemColumn][gemRow].y += dyGem;
@@ -537,9 +704,17 @@ function drawMotion() {
 
     swapGemColor(dt);
 
+    if (spacepressed) {
+        instantFall();
+    }
+
     horizontalMovement(dt);
 
-    fallingGem(dt);
+    difficultyUp();
+
+    if (!spacepressed) {
+        fallingGem(dt);
+    }
 
     myReq = requestAnimationFrame(drawMotion);
 }
@@ -557,6 +732,8 @@ function keyDownHandler(event) {
         zpressed = true;
     } else if (event.key === X) {
         xpressed = true;
+    } else if (event.key === SPACE) {
+        spacepressed = true;
     }
 }
 
@@ -569,6 +746,8 @@ function keyUpHandler(event) {
         zpressed = false;
     } else if (event.key === X) {
         xpressed = false;
+    } else if (event.key === SPACE) {
+        spacepressed = false;
     }
 }
 
@@ -583,5 +762,26 @@ function startGame() {
 const runButton = document.getElementById("runButton");
 runButton.addEventListener("click", () => {
     startGame();
+    displayScore();
+    displayNumberGemsCleared();
+    displayDifficultyLevel();
     runButton.disabled = true;
 });
+
+// Show score
+function displayScore() {
+    const displayScore = document.getElementById("scoringBackgroundSpace");
+    displayScore.innerHTML = score;
+}
+
+// Show gems cleared
+function displayNumberGemsCleared() {
+    const displayGemsCleared = document.getElementById("numberGemsBackgroundSpace");
+    displayGemsCleared.innerHTML = totalGemsCleared;
+}
+
+// Show difficulty level
+function displayDifficultyLevel() {
+    const displayDifficultyLevel = document.getElementById("difficultyBackgroundSpace");
+    displayDifficultyLevel.innerHTML = difficultyCounter;
+}
