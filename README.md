@@ -231,7 +231,7 @@ Functions
 
 --------------------------------------------------------------------
 
-!!! v0.9 - Increased difficulty of the game, fast descending and real-time game data !!!
+!!! v0.9 - Incremental difficulty, fast descending and real-time game data !!!
 
 Big update with new functionalities and the DOM basis of real-time information about the game for the players: 
 
@@ -240,6 +240,17 @@ Big update with new functionalities and the DOM basis of real-time information a
 * The game now gets more difficult (increased speed) based on the score obtained. 
 
 * Now the playable gem can descend faster by pressing Space, which allows a more fluid gameplay during the initial levels.
+
+DOM
+
+* Organized in a <div> "gameElements" the main elements of the game:
+
+    *  <div> "canvasContainer"
+    *  <div> "inGameInfo"
+
+Styles
+
+* Added basic styles to the new elements (pending proper format)
 
 Constants and variables
 
