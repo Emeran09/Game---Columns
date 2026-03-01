@@ -26,8 +26,25 @@ body {
 .inGameInfo {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-evenly;
     padding-left: 10px;
+}
+
+.nextGemDisplay {
+    display: flex;
+    justify-content: center;
+
+}
+
+#uiCanvas {
+    display: block;
+    background: black;
+}
+
+.gameStatistics {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 #scoringBackgroundSpace {

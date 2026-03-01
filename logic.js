@@ -1,11 +1,17 @@
 
 //--------------------  VARIABLES ------------------
 
-// Variables Canvas
+// Variables Canvas principal
 const canvas = document.getElementById("gameCanvas")
 const ctx = canvas.getContext("2d");
 const canvasHeight = canvas.height;
 const canvasWidth = canvas.width;
+
+// Variables UI Canvas
+const uiCanvas = document.getElementById("uiCanvas");
+const uiCtx = uiCanvas.getContext("2d");
+const uiCanvasHeight = uiCanvas.height;
+const uiCanvasWidth = uiCanvas.width;
 
 // Variables matrix squares 3D effect
 const squareSide = 50;
@@ -39,7 +45,16 @@ let gem = [];
 for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
     gem[gemColumn] = [];
     for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
-        gem[gemColumn][gemRow] = { x: GEM_START_X, y: gemRow * squareSide, color: "white", gemSpawn: false };
+        gem[gemColumn][gemRow] = { x: GEM_START_X, y: gemRow * squareSide, color: "black" };
+    }
+}
+
+// Variables next gem color
+let nextGemColors = [];
+for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+    nextGemColors[gemColumn] = [];
+    for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+        nextGemColors[gemColumn][gemRow] = { x: gemColumn, y: gemRow * squareSide, color: "black" };
     }
 }
 
@@ -83,12 +98,12 @@ const SWAP_GEM_COLOR_SPEED = 1.23;
 let swapGemColorAccumulator = 0;
 
 // Variables for game score
-const V_H_THREE_GEMS = 30;
-const V_H_FOUR_GEMS = 45;
-const V_H_FIVE_GEMS = 60;
-const D_THREE_GEMS = 40;
-const D_FOUR_GEMS = 70;
-const D_FIVE_GEMS = 100;
+const VERTICAL_HORIZONTAL_THREE_GEMS = 30; // modificar nombres completos o cambiar nombre
+const VERTICAL_HORIZONTAL_FOUR_GEMS = 45;
+const VERTICAL_HORIZONTAL_FIVE_GEMS = 60;
+const DIAGONAL_THREE_GEMS = 40;
+const DIAGONAL_FOUR_GEMS = 70;
+const DIAGONAL_FIVE_GEMS = 100;
 
 // Variables for game info
 let score = 0;
@@ -129,18 +144,28 @@ function resetGame() {
     scoreAccumulator = 0;
     difficultyCounter = 0;
 
-    for (let matrixColumn = 0; matrixColumn < MAX_MATRIX_COLUMNS; matrixColumn++) {
-        for (let matrixRow = 0; matrixRow < MAX_MATRIX_ROWS; matrixRow++) {
-            matrix[matrixColumn][matrixRow].blockPainted = false;
-            matrix[matrixColumn][matrixRow].color = "black";
-        }
-    }
+    clearBlocks()
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     initialPosition();
     generateGemRandomColor(gemColors);
     drawMatrixVolumeEffect();
+}
+
+// Function clear matrix
+function clearBlocks() {
+    for (let matrixColumn = 0; matrixColumn < MAX_MATRIX_COLUMNS; matrixColumn++) {
+        for (let matrixRow = 0; matrixRow < MAX_MATRIX_ROWS; matrixRow++) {
+            matrix[matrixColumn][matrixRow].blockPainted = false;
+            matrix[matrixColumn][matrixRow].color = "black";
+        }
+    }
+    for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+        for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+            nextGemColors[gemColumn][gemRow].color = "black";
+        }
+    }
 }
 
 // Function draw Game Over
@@ -192,11 +217,29 @@ function generateGemRandomColor(gemsColorsList) {
     return gemsColorsList[Math.floor(Math.random() * gemsColorsList.length)];
 }
 
-// Function for setting a random color to a gem
-function setGemRandomColor() {
+// Function for setting a random color to the initial gem
+function setInitialGemRandomColor() {
     for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
         for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
             gem[gemColumn][gemRow].color = generateGemRandomColor(gemColors);
+        }
+    }
+}
+
+// Function for next gem colors
+function generateNextGemRandomColor() {
+    for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+        for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+            nextGemColors[gemColumn][gemRow].color = generateGemRandomColor(gemColors);
+        }
+    }
+}
+
+// Function to set the next color to the actual gem
+function setCurrentGemColor() {
+    for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+        for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+            gem[gemColumn][gemRow].color = nextGemColors[gemColumn][gemRow].color;
         }
     }
 }
@@ -214,13 +257,26 @@ function drawGems() {
     }
 }
 
+// Function to display the next gem color on the UI
+function displayGemNextColors() {
+    for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+        for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+            uiCtx.beginPath();
+            uiCtx.fillStyle = nextGemColors[gemColumn][gemRow].color;
+            uiCtx.fillRect(nextGemColors[gemColumn][gemRow].x, nextGemColors[gemColumn][gemRow].y, squareSide, squareSide);
+            uiCtx.fill();
+            uiCtx.closePath();
+        }
+    }
+}
+
 // Function for setting the matrix blocks with color
 function setMatrixBlockColor() {
     for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
         for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
 
-            let roundXPosition = Math.floor(gem[gemColumn][gemRow].x / squareSide);
-            let roundYPosition = Math.floor(gem[gemColumn][gemRow].y / squareSide);
+            const roundXPosition = Math.floor(gem[gemColumn][gemRow].x / squareSide);
+            const roundYPosition = Math.floor(gem[gemColumn][gemRow].y / squareSide);
 
             matrix[roundXPosition][roundYPosition].color = gem[gemColumn][gemRow].color;
             matrix[roundXPosition][roundYPosition].blockPainted = true;
@@ -257,33 +313,33 @@ function verticalGemClear() {
             }
 
             let baseColor = matrix[matrixColumn][matrixRow].color;
-            let count = 1;
+            let countBlock = 1;
 
             // counts how many gems in a row have the same color
             for (let nextRow = matrixRow + 1; nextRow < MAX_MATRIX_ROWS; nextRow++) {
                 if (matrix[matrixColumn][nextRow].blockPainted && matrix[matrixColumn][nextRow].color === baseColor) {
-                    count++;
+                    countBlock++;
                 } else {
                     break;
                 }
             }
             // Clears the cells with the same color
-            if (count >= 3) {
-                for (let i = 0; i < count; i++) {
+            if (countBlock >= 3) {
+                for (let i = 0; i < countBlock; i++) {
                     matrix[matrixColumn][matrixRow + i].blockPainted = false;
                 }
                 cleared = true;
             }
 
-            if (count === 3) {
-                score += V_H_THREE_GEMS;
-                totalGemsCleared += count;
-            } else if (count === 4) {
-                score += V_H_FOUR_GEMS;
-                totalGemsCleared += count;
-            } else if (count === 5) {
-                score += V_H_FIVE_GEMS;
-                totalGemsCleared += count;
+            if (countBlock === 3) {
+                score += VERTICAL_HORIZONTAL_THREE_GEMS;
+                totalGemsCleared += countBlock;
+            } else if (countBlock === 4) {
+                score += VERTICAL_HORIZONTAL_FOUR_GEMS;
+                totalGemsCleared += countBlock;
+            } else if (countBlock === 5) {
+                score += VERTICAL_HORIZONTAL_FIVE_GEMS;
+                totalGemsCleared += countBlock;
             }
         }
     }
@@ -304,34 +360,34 @@ function horizontalGemClear() {
             }
 
             let baseColor = matrix[matrixColumn][matrixRow].color;
-            let count = 1;
+            let countBlock = 1;
 
             // counts how many gems in a row have the same color
             for (let nextColumn = matrixColumn + 1; nextColumn < MAX_MATRIX_COLUMNS; nextColumn++) {
                 if (matrix[nextColumn][matrixRow].blockPainted && matrix[nextColumn][matrixRow].color === baseColor) {
-                    count++;
+                    countBlock++;
                 } else {
                     break;
                 }
             }
 
             // Clears the cells with the same color
-            if (count >= 3) {
-                for (let i = 0; i < count; i++) {
+            if (countBlock >= 3) {
+                for (let i = 0; i < countBlock; i++) {
                     matrix[matrixColumn + i][matrixRow].blockPainted = false;
                 }
                 cleared = true;
             }
 
-            if (count === 3) {
-                score += V_H_THREE_GEMS;
-                totalGemsCleared += count;
-            } else if (count === 4) {
-                score += V_H_FOUR_GEMS;
-                totalGemsCleared += count;
-            } else if (count === 5) {
-                score += V_H_FIVE_GEMS;
-                totalGemsCleared += count;
+            if (countBlock === 3) {
+                score += VERTICAL_HORIZONTAL_THREE_GEMS;
+                totalGemsCleared += countBlock;
+            } else if (countBlock === 4) {
+                score += VERTICAL_HORIZONTAL_FOUR_GEMS;
+                totalGemsCleared += countBlock;
+            } else if (countBlock === 5) {
+                score += VERTICAL_HORIZONTAL_FIVE_GEMS;
+                totalGemsCleared += countBlock;
             }
         }
     }
@@ -352,34 +408,34 @@ function diagonalDownRightGemClear() {
             }
 
             let baseColor = matrix[matrixColumn][matrixRow].color;
-            let count = 1;
+            let countBlock = 1;
             let nextColumn = matrixColumn + 1;
             let nextRow = matrixRow + 1;
 
             // counts how many gems in a row have the same color
             while (nextColumn < MAX_MATRIX_COLUMNS && nextRow < MAX_MATRIX_ROWS && matrix[nextColumn][nextRow].blockPainted && matrix[nextColumn][nextRow].color === baseColor) {
-                count++;
+                countBlock++;
                 nextColumn++;
                 nextRow++;
             }
 
             // Clears the cells with the same color
-            if (count >= 3) {
-                for (let i = 0; i < count; i++) {
+            if (countBlock >= 3) {
+                for (let i = 0; i < countBlock; i++) {
                     matrix[matrixColumn + i][matrixRow + i].blockPainted = false;
                 }
                 cleared = true;
             }
 
-            if (count === 3) {
-                score += D_THREE_GEMS;
-                totalGemsCleared += count;
-            } else if (count === 4) {
-                score += D_FOUR_GEMS;
-                totalGemsCleared += count;
-            } else if (count === 5) {
-                score += D_FIVE_GEMS;
-                totalGemsCleared += count;
+            if (countBlock === 3) {
+                score += DIAGONAL_THREE_GEMS;
+                totalGemsCleared += countBlock;
+            } else if (countBlock === 4) {
+                score += DIAGONAL_FOUR_GEMS;
+                totalGemsCleared += countBlock;
+            } else if (countBlock === 5) {
+                score += DIAGONAL_FIVE_GEMS;
+                totalGemsCleared += countBlock;
             }
         }
     }
@@ -400,34 +456,34 @@ function diagonalUpRightGemClear() {
             }
 
             let baseColor = matrix[matrixColumn][matrixRow].color;
-            let count = 1;
+            let countBlock = 1;
             let nextColumn = matrixColumn + 1;
             let previousRow = matrixRow - 1;
 
             // counts how many gems in a row have the same color
             while (nextColumn < MAX_MATRIX_COLUMNS && previousRow >= MATRIX_START_Y && matrix[nextColumn][previousRow].blockPainted && matrix[nextColumn][previousRow].color === baseColor) {
-                count++;
+                countBlock++;
                 nextColumn++;
                 previousRow--;
             }
 
             // Clears the cells with the same color
-            if (count >= 3) {
-                for (let i = 0; i < count; i++) {
+            if (countBlock >= 3) {
+                for (let i = 0; i < countBlock; i++) {
                     matrix[matrixColumn + i][matrixRow - i].blockPainted = false;
                 }
                 cleared = true;
             }
 
-            if (count === 3) {
-                score += D_THREE_GEMS;
-                totalGemsCleared += count;
-            } else if (count === 4) {
-                score += D_FOUR_GEMS;
-                totalGemsCleared += count;
-            } else if (count === 5) {
-                score += D_FIVE_GEMS;
-                totalGemsCleared += count;
+            if (countBlock === 3) {
+                score += DIAGONAL_THREE_GEMS;
+                totalGemsCleared += countBlock;
+            } else if (countBlock === 4) {
+                score += DIAGONAL_FOUR_GEMS;
+                totalGemsCleared += countBlock;
+            } else if (countBlock === 5) {
+                score += DIAGONAL_FIVE_GEMS;
+                totalGemsCleared += countBlock;
             }
         }
     }
@@ -467,11 +523,11 @@ function updateMatrixAfterClear() {
 
     do {
 
-        let clearedVertical = verticalGemClear();
-        let clearedHorizontal = horizontalGemClear();
-        let clearedDiagonalUR = diagonalUpRightGemClear();
-        let clearedDiagonalDR = diagonalDownRightGemClear();
-        let movedGemDown = setUnremovedGems();
+        const clearedVertical = verticalGemClear();
+        const clearedHorizontal = horizontalGemClear();
+        const clearedDiagonalUR = diagonalUpRightGemClear();
+        const clearedDiagonalDR = diagonalDownRightGemClear();
+        const movedGemDown = setUnremovedGems();
 
         somethingHappened = clearedVertical || clearedHorizontal || clearedDiagonalDR || clearedDiagonalUR || movedGemDown;
 
@@ -485,6 +541,10 @@ function updateMatrixAfterClear() {
 // Function for horizontal movement of the gems
 function horizontalMovement(dt) {
 
+    if (gameOver) {
+        return;
+    }
+
     horizontalMovementAccumulator += dt * HORIZONTAL_MOV_SPEED;
 
     if (horizontalMovementAccumulator >= HORIZONTAL_MOV_STEP) {
@@ -496,16 +556,16 @@ function horizontalMovement(dt) {
 
                 let xGemSide = Math.floor(gem[gemColumn][gemRow].x / squareSide);
                 let yGemSide = Math.floor(gem[gemColumn][gemRow].y / squareSide);
-                let xGemSideRight = Math.min(xGemSide + 1, MAX_MATRIX_COLUMNS - 1);
-                let xGemSideLeft = Math.max(0, xGemSide - 1);
-                let yNextGem = Math.min(yGemSide + 1, MAX_MATRIX_ROWS - 1);
+                const xGemSideRight = Math.min(xGemSide + 1, MAX_MATRIX_COLUMNS - 1);
+                const xGemSideLeft = Math.max(0, xGemSide - 1);
+                const yNextGem = Math.min(yGemSide + 1, MAX_MATRIX_ROWS - 1);
 
-                let halfBlockDown = (gem[gemColumn][gemRow].y % squareSide) !== 0;
+                const halfBlockDown = (gem[gemColumn][gemRow].y % squareSide) !== 0;
 
-                let rightMatrixCellPainted = matrix[xGemSideRight][yGemSide].blockPainted;
-                let rightNextMatrixCellPainted = matrix[xGemSideRight][yNextGem].blockPainted;
-                let leftMatrixCellPainted = matrix[xGemSideLeft][yGemSide].blockPainted;
-                let leftNextMatrixCellPainted = matrix[xGemSideLeft][yNextGem].blockPainted;
+                const rightMatrixCellPainted = matrix[xGemSideRight][yGemSide].blockPainted;
+                const rightNextMatrixCellPainted = matrix[xGemSideRight][yNextGem].blockPainted;
+                const leftMatrixCellPainted = matrix[xGemSideLeft][yGemSide].blockPainted;
+                const leftNextMatrixCellPainted = matrix[xGemSideLeft][yNextGem].blockPainted;
 
                 if (rightpressed && (rightMatrixCellPainted || rightNextMatrixCellPainted) && halfBlockDown) {
                     gem[0][0].x = xGemSide * squareSide;
@@ -542,6 +602,10 @@ function horizontalMovement(dt) {
 // Function for changing the color of the gems in the block
 function swapGemColor(dt) {
 
+    if (gameOver) {
+        return;
+    }
+
     swapGemColorAccumulator += dt * SWAP_GEM_COLOR_SPEED;
 
     if (swapGemColorAccumulator >= SWAP_GEM_COLOR_STEP) {
@@ -565,6 +629,11 @@ function swapGemColor(dt) {
 
 // Function for sending the gems to the end of the available space
 function instantFall() {
+
+if (gameOver) {
+        return;
+    }
+
     let lowerGemPosition = Math.floor(gem[0][2].y / squareSide);
     let fallingGemLimitCanvas = lowerGemPosition < MAX_MATRIX_ROWS - 1;
 
@@ -592,7 +661,10 @@ function instantFall() {
             if ((!fallingGemLimitCanvas || matrixNextCellPainted) && counterIteration < MAX_ITERATION) {
                 setMatrixBlockColor();
                 updateMatrixAfterClear();
-                setGemRandomColor();
+
+                setCurrentGemColor();
+                generateNextGemRandomColor();
+
                 initialPosition();
                 counterIteration++;
             }
@@ -635,6 +707,10 @@ function difficultyUp() {
 // Function for vertical movement of the gem
 function fallingGem(dt) {
 
+    if (gameOver) {
+        return;
+    }
+
     fallingGemAccumulator += dt * FALLING_GEM_SPEED + increaseSpeed;
 
     if (fallingGemAccumulator >= FALLING_GEM_STEP) {
@@ -668,7 +744,10 @@ function fallingGem(dt) {
                 if ((!fallingGemLimitCanvas || matrixNextCellPainted) && counterIteration < MAX_ITERATION) {
                     setMatrixBlockColor();
                     updateMatrixAfterClear();
-                    setGemRandomColor();
+
+                    setCurrentGemColor();
+                    generateNextGemRandomColor();
+
                     initialPosition();
                     counterIteration++;
                 }
@@ -680,7 +759,38 @@ function fallingGem(dt) {
 // Function drawing the motion of the game
 function drawMotion() {
 
-    if (gameOver) {
+    nowTime = timestamp();
+    dt = (nowTime - lastTime) / 1000;
+    lastTime = nowTime;
+
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    uiCtx.clearRect(0, 0, uiCanvasWidth, uiCanvasHeight);
+
+    drawMatrixVolumeEffect();
+    paintMatrixBlock();
+
+    if (!gameOver) {
+
+        drawGems();
+        displayGemNextColors();
+
+        swapGemColor(dt);
+
+        if (spacepressed) {
+            instantFall();
+        }
+
+        horizontalMovement(dt);
+        difficultyUp();
+
+        if (!spacepressed) {
+            fallingGem(dt);
+        }
+
+        myReq = requestAnimationFrame(drawMotion);
+
+    } else {
+
         cancelAnimationFrame(myReq);
         resetGame();
         document.fonts.load(fontGameOver).then(() => { // ensure fonts are loaded
@@ -688,35 +798,9 @@ function drawMotion() {
         });
         runButton.disabled = false;
         return;
+
     }
 
-    nowTime = timestamp();
-    dt = (nowTime - lastTime) / 1000;
-    lastTime = nowTime;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    drawMatrixVolumeEffect();
-
-    paintMatrixBlock();
-
-    drawGems();
-
-    swapGemColor(dt);
-
-    if (spacepressed) {
-        instantFall();
-    }
-
-    horizontalMovement(dt);
-
-    difficultyUp();
-
-    if (!spacepressed) {
-        fallingGem(dt);
-    }
-
-    myReq = requestAnimationFrame(drawMotion);
 }
 
 // Key events
@@ -753,9 +837,10 @@ function keyUpHandler(event) {
 
 // Function start game
 function startGame() {
-    setGemRandomColor();
+    setInitialGemRandomColor();
     initialPosition();
     drawMotion();
+    generateNextGemRandomColor();
 }
 
 // Button start game

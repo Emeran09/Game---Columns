@@ -297,3 +297,42 @@ Functions
 * Modified the "keyUpHandler" and "keyDownHandler" with the addition of SPACE
 
 * Modified the event listener of "runButton" with the three new display functions
+
+--------------------------------------------------------------------
+
+!!! v0.10 - Display next gem !!!
+
+At last, we can see the a bit in the future in the game. Ok, just a bit, the next gem actually that will be played(better than nothing).
+
+DOM
+
+* Separated "gameStatistics" from "nextGemDisplay"
+
+CSS
+
+* Added proper format to the new DOM structures
+
+Variables
+
+* Creation of a second canvas (uiCanvas) to display the next gem
+
+* Created the variables (nextGemColors) for the uiCanvas
+
+Functions
+
+* Added the clearing of the uiCanvas varaibels in "clearBlocks" (name changed also)
+
+* Renamed "setGemRandomColor" to "setInitialGemRandomColor", as it will set just the initial color
+
+* Created "generateNextGemRandomColor", which generates the next gem color to the variables in uiCanvas
+
+* Created "setCurrentGemColor", which sets the color from nextGemColors to the actual gem when a block is placed
+
+* Created "displayGemNextColors", to show the color in the uiCanvas
+
+* Added robustness to the movement functions and swapping colors
+
+* Modified "instantFall" and "fallingGem" with the changes in how the colors of the gems is set (not directly to the gem, but first to the canvas and then to the playable gem)
+
+* Reorganised the functions in "drawMotion" to adapt the new logic
+

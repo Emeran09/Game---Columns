@@ -9,7 +9,7 @@
     <meta name="keywords" content="HTML, CSS, JS, game, tetris, columns, Sega, Megadrive">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
-    <link rel="stylesheet" href="styles_game.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
@@ -21,16 +21,21 @@
         </div>
 
         <div class="inGameInfo">
-            <div id="scoringBackgroundSpace"></div>
-            <div id="numberGemsBackgroundSpace"></div>
-            <div id="difficultyBackgroundSpace"></div>
+            <div class="nextGemDisplay">
+                <canvas id="uiCanvas" width="60" height="160"></canvas>
+            </div>
+            <div class="gameStatistics">
+                <div id="scoringBackgroundSpace"></div>
+                <div id="numberGemsBackgroundSpace"></div>
+                <div id="difficultyBackgroundSpace"></div>
+            </div>
         </div>
 
     </div>
 
     <button id="runButton">Start Game</button>
 
-    <script src="logic_game.js"></script>
+    <script src="logic.js"></script>
 </body>
 
 </html>
