@@ -336,3 +336,15 @@ Functions
 
 * Reorganised the functions in "drawMotion" to adapt the new logic
 
+--------------------------------------------------------------------
+
+!!! v1.0 - First full version of the game !!!
+
+After a while without uploading, full game, beta version is released!! As lot of content has been added since the previous update, but the main logic was implemented and the game was fully playable in v0.10. It was "only" necessary to set all the visual aspects, music/sounds effects, and the transitions between screens:
+
+* Initial button, initial transition, main menu, controls menu and game menu
+
+* The game has music! Background music and sound effects have been added
+
+* Full flow of the game implemented and transitions between menus
+

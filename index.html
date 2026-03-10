@@ -8,32 +8,90 @@
     <meta name="description" content="First 2D game project">
     <meta name="keywords" content="HTML, CSS, JS, game, tetris, columns, Sega, Megadrive">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
     <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
-    <div class="gameElements">
+    <div id="game-viewport">
 
-        <div class="canvasContainer">
-            <canvas id="gameCanvas" width="300" height="700"></canvas>
+        <div class="initiate-game-button screen-on">
+            <button class="initial-button-format">PRESS TO START</button>
         </div>
 
-        <div class="inGameInfo">
-            <div class="nextGemDisplay">
-                <canvas id="uiCanvas" width="60" height="160"></canvas>
+        <div class="screen-intro screen-off">
+
+            <div class="intro-first-scene screen-off">
+                <div class="my-company-title intro-title-format">ACAN DE NAUER GAMES</div>
+                <div class="presentation-title intro-subtitle-format">PRESENTS</div>
             </div>
-            <div class="gameStatistics">
-                <div id="scoringBackgroundSpace"></div>
-                <div id="numberGemsBackgroundSpace"></div>
-                <div id="difficultyBackgroundSpace"></div>
+
+            <div class="intro-second-scene screen-off">
+                <div class="collaboration-title intro-subtitle-format">IN COLLABORATION WITH</div>
+                <div class="david-company-title intro-title-format">EL PROFE CEO</div>
             </div>
+
+        </div>
+
+        <div class="screen-menu screen-off">
+            <div class="menu-container">
+                <button id="play-button" class="menu-button-format">PLAY</button>
+                <button id="controls-button" class="menu-button-format">CONTROLS</button>
+            </div>
+        </div>
+
+        <div id="screen-controls" class="screen-off">
+            <div class="controls-card">
+                <h2 class="intro-title-format fade-in">CONTROLS</h2>
+                <ul class="controls-list">
+                    <li><span>ARROWS LEFT/RIGHT:</span> MOVE GEMS</li>
+                    <li><span>Z / X:</span> SWAP COLORS</li>
+                    <li><span>SPACE:</span> INSTANT FALL</li>
+                </ul>
+                <button id="back-button" class="menu-button-format controls-button-format">BACK</button>
+            </div>
+        </div>
+
+        <div class="screen-game screen-off">
+
+            <div class="game-side-controls">
+                <button id="reset-button" class="small-button-format">RESET</button>
+                <button id="menu-button" class="small-button-format">MENU</button>
+            </div>
+
+            <div class="main-play-area">
+                <div class="canvas-container">
+                    <canvas id="game-canvas" width="300" height="700"></canvas>
+                </div>
+            </div>
+
+            <div class="in-game-info">
+                <div class="next-gem-display">
+                    <canvas id="ui-canvas" width="60" height="160"></canvas>
+                </div>
+                <div class="game-statistics">
+                    <div class="ui-scoreboard">
+                        <div class="ui-title">SCORE</div>
+                        <div id="scoring-background-space" class="ui-value">LET'S</div>
+                    </div>
+                    <div class="ui-scoreboard">
+                        <div class="ui-title">GEMS CLEARED</div>
+                        <div id="number-gems-background-space" class="ui-value">GET</div>
+                    </div>
+                    <div class="ui-scoreboard">
+                        <div class="ui-title">DIFFICULTY LEVEL</div>
+                        <div id="difficulty-background-space" class="ui-value">STARTED!</div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     </div>
-
-    <button id="runButton">Start Game</button>
 
     <script src="logic.js"></script>
 </body>

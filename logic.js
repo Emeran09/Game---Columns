@@ -1,17 +1,24 @@
-
 //--------------------  VARIABLES ------------------
 
 // Variables Canvas principal
-const canvas = document.getElementById("gameCanvas")
+const canvas = document.getElementById("game-canvas")
 const ctx = canvas.getContext("2d");
 const canvasHeight = canvas.height;
 const canvasWidth = canvas.width;
 
 // Variables UI Canvas
-const uiCanvas = document.getElementById("uiCanvas");
+const uiCanvas = document.getElementById("ui-canvas");
 const uiCtx = uiCanvas.getContext("2d");
 const uiCanvasHeight = uiCanvas.height;
 const uiCanvasWidth = uiCanvas.width;
+
+// Variables states of the game
+const state = {
+    playing: runStatePlaying,
+    clearing: runStateClearing,
+    fallingAfterClear: runStateFallingAfterClearing
+};
+let gameState = "playing" // posibles: "playing", "clearing" y "fallingAfterClear"
 
 // Variables matrix squares 3D effect
 const squareSide = 50;
@@ -26,7 +33,7 @@ let matrix = [];
 for (let matrixColumn = 0; matrixColumn < MAX_MATRIX_COLUMNS; matrixColumn++) {
     matrix[matrixColumn] = [];
     for (let matrixRow = 0; matrixRow < MAX_MATRIX_ROWS; matrixRow++) {
-        matrix[matrixColumn][matrixRow] = { x: matrixColumn * squareSide, y: matrixRow * squareSide, color: "black", blockPainted: false };
+        matrix[matrixColumn][matrixRow] = { x: matrixColumn * squareSide, y: matrixRow * squareSide, color: "black", blockPainted: false, clearing: false, clearTimer: 0 };
     }
 }
 
@@ -49,6 +56,12 @@ for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
     }
 }
 
+let loadedGemImages = 0;
+let loadedGemExplosionImages = 0;
+const TOTAL_EXPLOSION_IMAGES = 7;
+const gemImages = {};
+const gemExplosions = [];
+
 // Variables next gem color
 let nextGemColors = [];
 for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
@@ -57,6 +70,12 @@ for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
         nextGemColors[gemColumn][gemRow] = { x: gemColumn, y: gemRow * squareSide, color: "black" };
     }
 }
+
+// Variables for clearing animation
+let CLEAR_ANIMATION_DURATION = 0.4;
+const CLEAR_ANIMATION_SPEED = 20;
+const EXPLOSION_ANIMATION_DURATION = 0.3;
+let TOTAL_ANIMATION_DURATION = CLEAR_ANIMATION_DURATION + EXPLOSION_ANIMATION_DURATION;
 
 // Variables buttons
 let rightpressed = false;
@@ -118,9 +137,57 @@ let scoreAccumulator = 0;
 let difficultyCounter = 0;
 const LIMIT_DIFFICULTY_UP_1 = 20;
 const LIMIT_DIFFICULTY_UP_2 = 50;
-const DIFFICULTY_UP_TRIGGER = 100;
+const DIFFICULTY_UP_TRIGGER = 1000;
 const DELTA_SPEED_UP = 0.005;
 const DELTA_SPEED_UP_HARD = 0.1;
+
+// ------------------ AUDIO VARIABLES --------------------
+
+const bgMusic = new Audio("audio/Ziggurat Theme.mp3");
+bgMusic.loop = true;
+bgMusic.volume = 0.5;
+
+const bgMenuMusic = new Audio ("audio/Nile_Twilight.mp3");
+bgMenuMusic.loop = true;
+bgMenuMusic.volume = 0.5;
+
+const sfxSwapGems = new Audio("audio/sfx_swap_gems.mp3");
+const sfxGemReachingEnd = new Audio("audio/sfx_gem_reaching_end.mp3");
+sfxGemReachingEnd.onloadedmetadata = function () {
+    CLEAR_ANIMATION_DURATION = sfxGemReachingEnd.duration;
+    TOTAL_ANIMATION_DURATION = CLEAR_ANIMATION_DURATION + EXPLOSION_ANIMATION_DURATION;
+    if (!isNaN(sfxGemClear.duration)) {
+        sfxGemClear.playbackRate = sfxGemClear.duration / TOTAL_ANIMATION_DURATION;
+    }
+}
+
+const sfxGemClear = new Audio("audio/sfx_gem_clear.wav");
+sfxGemClear.onloadedmetadata = function () {
+    sfxGemClear.playbackRate = sfxGemClear.duration / TOTAL_ANIMATION_DURATION;
+}
+const chiquitoProfeCeo = new Audio("audio/chiquito_el_profe_CEO.mp3");
+const chuquitoAtaquerl = new Audio("audio/chiquito_al_ataquerl.mp3");
+
+// ---------------- ANIMATION VARIABLES -----------------
+
+const introButton = document.querySelector(".initial-button-format");
+const screenIntro = document.querySelector(".screen-intro");
+const firstScene = document.querySelector(".intro-first-scene");
+const secondScene = document.querySelector(".intro-second-scene");
+const companyTitle = document.querySelector(".my-company-title");
+const presentationTitle = document.querySelector(".presentation-title");
+const collaborationTitle = document.querySelector(".collaboration-title");
+const davidCompanyTitle = document.querySelector(".david-company-title");
+
+const screenMenu = document.querySelector(".screen-menu");
+const playButton = document.getElementById("play-button");
+const controlsButton = document.getElementById("controls-button");
+const screenControls = document.getElementById("screen-controls");
+const backButton = document.getElementById("back-button");
+
+const screenGame = document.querySelector(".screen-game");
+const resetButton = document.getElementById("reset-button");
+const menuButton = document.getElementById("menu-button");
 
 // ------------------ FUNCTIONS ----------------
 
@@ -128,6 +195,86 @@ const DELTA_SPEED_UP_HARD = 0.1;
 function timestamp() {
     return window.performance && window.performance.now ? window.performance.now() : new Date().getTime();
 };
+
+// Function to use the first button (which enables all the later sounds)
+function enableIntroButton() {
+
+    setTimeout(() => { // enables intro button
+        introButton.classList.add("fade-in")
+    }, 100);
+
+}
+
+// Function to transition to the intro
+function transitionToIntroScenes() {
+
+    setTimeout(() => {
+        introButton.classList.remove("fade-in")
+        setTimeout(() => {
+            introButton.classList.remove("screen-on")
+            introButton.classList.add("screen-off")
+            runIntro();
+        }, 1500);
+    }, 500);
+
+}
+
+// Function to convert callback hell into promises
+function wait(ms) {
+    return new Promise(function (resolve) {
+        setTimeout(resolve, ms);
+    });
+}
+
+// Function animating the intro scene
+async function runIntro() {
+
+    screenIntro.classList.replace("screen-off", "screen-on")
+    await wait(100);
+
+    firstScene.classList.remove("screen-off");
+    await wait(100);
+
+    companyTitle.classList.add("fade-in")
+    await wait(1500);
+
+    presentationTitle.classList.add("fade-in")
+    await wait(2000);
+
+    companyTitle.classList.remove("fade-in")
+    presentationTitle.classList.remove("fade-in")
+    await wait(2000);
+
+    firstScene.classList.add("screen-off")
+    secondScene.classList.remove("screen-off")
+    await wait(1000);
+
+    collaborationTitle.classList.add("fade-in")
+    await wait(1500);
+
+    davidCompanyTitle.classList.add("fade-in")
+    chiquitoProfeCeo.play();
+    await wait(1500);
+
+    collaborationTitle.classList.remove("fade-in")
+    davidCompanyTitle.classList.remove("fade-in")
+    await wait(2000);
+
+    transitionToMainMenu();
+    await wait(1000);
+
+}
+
+// Function to transition to the main menu
+function transitionToMainMenu() {
+
+    setTimeout(() => {
+        screenIntro.classList.replace("screen-on", "screen-off")
+        screenMenu.classList.replace("screen-off", "screen-on")
+        bgMenuMusic.play();
+    }, 1000);
+
+}
 
 // Function reset game
 function resetGame() {
@@ -144,6 +291,13 @@ function resetGame() {
     scoreAccumulator = 0;
     difficultyCounter = 0;
 
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+
+    displayScore();
+    displayNumberGemsCleared();
+    displayDifficultyLevel();
+
     clearBlocks()
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -151,6 +305,49 @@ function resetGame() {
     initialPosition();
     generateGemRandomColor(gemColors);
     drawMatrixVolumeEffect();
+}
+
+// Function for the game state "playing"
+function runStatePlaying() {
+
+    drawGems();
+    swapGemColor(dt);
+    horizontalMovement(dt);
+
+    if (spacepressed) {
+        instantFall();
+    } else {
+        fallingGem(dt);
+    }
+}
+
+// Function for the game state "clearing"
+function runStateClearing() {
+
+    const stillAnimating = animateClearing(dt);
+
+    if (!stillAnimating) {
+        gameState = "fallingAfterClear";
+    }
+    difficultyUp();
+}
+
+// Function for the game state "fallingAfterClearing"
+function runStateFallingAfterClearing() {
+
+    const moved = setUnremovedGems();
+
+    if (!moved) {
+
+        if (detectClears()) {
+            gameState = "clearing"; // combo
+        } else {
+            gameState = "playing";
+            setCurrentGemColor();
+            generateNextGemRandomColor();
+            initialPosition();
+        }
+    }
 }
 
 // Function clear matrix
@@ -191,6 +388,46 @@ function initialPosition() {
         }
     }
 }
+
+// Function to preload the images
+function preloadImages() {
+    gemColors.forEach((color) => {
+        const image = new Image();
+        image.src = `images/${color}_gem_sprite.png`;
+        image.onload = function () {
+            gemImages[color] = image;
+            loadedGemImages++;
+            checkAllImagesLoaded();
+        }
+    })
+
+    for (let i = 0; i < TOTAL_EXPLOSION_IMAGES; i++) {
+        const imageExplosion = new Image();
+        imageExplosion.src = `images/gems_explosion_sequence_${i}.png`;
+        imageExplosion.onload = function () {
+            gemExplosions[i] = imageExplosion;
+            loadedGemExplosionImages++;
+            checkAllImagesLoaded();
+        }
+    }
+}
+
+// Function to check if all images have been loaded
+function checkAllImagesLoaded() {
+    if (loadedGemImages === gemColors.length && loadedGemExplosionImages === TOTAL_EXPLOSION_IMAGES) {
+        playButton.disabled = false;
+    }
+}
+
+// Function to play sounds effects overlapping
+function playSoundEffect(audioElement) {
+    if (audioElement) {
+        audioElement.currentTime = 0;
+        audioElement.play();
+    }
+}
+
+preloadImages();
 
 // Function for drawing the matrix squares 3D effect
 function drawMatrixVolumeEffect() {
@@ -248,24 +485,32 @@ function setCurrentGemColor() {
 function drawGems() {
     for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
         for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
-            ctx.beginPath();
-            ctx.fillStyle = gem[gemColumn][gemRow].color;
-            ctx.fillRect(gem[gemColumn][gemRow].x, gem[gemColumn][gemRow].y, squareSide, squareSide);
-            ctx.fill();
-            ctx.closePath();
+
+            const actualColor = gem[gemColumn][gemRow].color;
+
+            if (actualColor !== "black") {
+                ctx.drawImage(gemImages[actualColor], gem[gemColumn][gemRow].x, gem[gemColumn][gemRow].y, squareSide, squareSide);
+            }
         }
     }
 }
 
 // Function to display the next gem color on the UI
 function displayGemNextColors() {
+
+    const centerUiX = (uiCanvasWidth - squareSide) / 2
+    const totalGemsHeight = MAX_GEM_ROWS * squareSide;
+    const centerUiY = (uiCanvasHeight - totalGemsHeight) / 2;
+
     for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
         for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
-            uiCtx.beginPath();
-            uiCtx.fillStyle = nextGemColors[gemColumn][gemRow].color;
-            uiCtx.fillRect(nextGemColors[gemColumn][gemRow].x, nextGemColors[gemColumn][gemRow].y, squareSide, squareSide);
-            uiCtx.fill();
-            uiCtx.closePath();
+
+            const showNextColor = nextGemColors[gemColumn][gemRow].color
+
+            if (showNextColor !== "black") {
+                const finalY = centerUiY + (gemRow * squareSide);
+                uiCtx.drawImage(gemImages[showNextColor], centerUiX, finalY, squareSide, squareSide);
+            }
         }
     }
 }
@@ -288,15 +533,72 @@ function setMatrixBlockColor() {
 function paintMatrixBlock() {
     for (let matrixColumn = 0; matrixColumn < MAX_MATRIX_COLUMNS; matrixColumn++) {
         for (let matrixRow = 0; matrixRow < MAX_MATRIX_ROWS; matrixRow++) {
+
+            const matrixGemImage = matrix[matrixColumn][matrixRow].color;
+            const matrixX = matrix[matrixColumn][matrixRow].x;
+            const matrixY = matrix[matrixColumn][matrixRow].y;
+
             if (matrix[matrixColumn][matrixRow].blockPainted) {
-                ctx.beginPath();
-                ctx.fillStyle = matrix[matrixColumn][matrixRow].color;
-                ctx.fillRect(matrix[matrixColumn][matrixRow].x, matrix[matrixColumn][matrixRow].y, squareSide, squareSide);
-                ctx.fill();
-                ctx.closePath();
+
+                if (matrix[matrixColumn][matrixRow].clearing) {
+
+                    if (matrix[matrixColumn][matrixRow].clearTimer < CLEAR_ANIMATION_DURATION) {
+
+                        playSoundEffect(sfxGemClear);
+                        const BLINK = Math.floor(matrix[matrixColumn][matrixRow].clearTimer * CLEAR_ANIMATION_SPEED) % 2;
+
+                        if (BLINK) {
+                            // we take advantage of the matrix black color and
+                            // do nothing ti generate the blinking effect at clearing gems
+                        } else {
+                            if (gemImages[matrixGemImage]) {
+                                ctx.drawImage(gemImages[matrixGemImage], matrixX, matrixY, squareSide, squareSide);
+                            }
+                        }
+
+                    } else {
+
+                        let EXPLOSION_SELECTOR = Math.floor(gemExplosions.length * ((matrix[matrixColumn][matrixRow].clearTimer - CLEAR_ANIMATION_DURATION) / EXPLOSION_ANIMATION_DURATION));
+                        EXPLOSION_SELECTOR = Math.min(EXPLOSION_SELECTOR, gemExplosions.length - 1);
+
+                        if (gemExplosions[EXPLOSION_SELECTOR]) {
+                            ctx.drawImage(gemExplosions[EXPLOSION_SELECTOR], matrixX, matrixY, squareSide, squareSide);
+                        }
+
+                    }
+
+                } else {
+                    if (gemImages[matrixGemImage]) {
+                        ctx.drawImage(gemImages[matrixGemImage], matrixX, matrixY, squareSide, squareSide);
+                    }
+                }
             }
         }
     }
+}
+
+// Function for the clearing animation
+function animateClearing(dt) {
+
+    let stillAnimating = false;
+
+    for (let matrixColumn = 0; matrixColumn < MAX_MATRIX_COLUMNS; matrixColumn++) {
+        for (let matrixRow = 0; matrixRow < MAX_MATRIX_ROWS; matrixRow++) {
+            if (matrix[matrixColumn][matrixRow].clearing) {
+
+                matrix[matrixColumn][matrixRow].clearTimer += dt;
+
+                if (matrix[matrixColumn][matrixRow].clearTimer >= TOTAL_ANIMATION_DURATION) {
+                    matrix[matrixColumn][matrixRow].blockPainted = false;
+                    matrix[matrixColumn][matrixRow].clearing = false;
+                } else {
+                    stillAnimating = true;
+                }
+            }
+        }
+    }
+
+    return stillAnimating;
 }
 
 // Function for clearing gems in a vertical direction
@@ -326,7 +628,8 @@ function verticalGemClear() {
             // Clears the cells with the same color
             if (countBlock >= 3) {
                 for (let i = 0; i < countBlock; i++) {
-                    matrix[matrixColumn][matrixRow + i].blockPainted = false;
+                    matrix[matrixColumn][matrixRow + i].clearing = true;
+                    matrix[matrixColumn][matrixRow + i].clearTimer = 0;
                 }
                 cleared = true;
             }
@@ -374,7 +677,8 @@ function horizontalGemClear() {
             // Clears the cells with the same color
             if (countBlock >= 3) {
                 for (let i = 0; i < countBlock; i++) {
-                    matrix[matrixColumn + i][matrixRow].blockPainted = false;
+                    matrix[matrixColumn + i][matrixRow].clearing = true;
+                    matrix[matrixColumn + i][matrixRow].clearTimer = 0;
                 }
                 cleared = true;
             }
@@ -422,7 +726,8 @@ function diagonalDownRightGemClear() {
             // Clears the cells with the same color
             if (countBlock >= 3) {
                 for (let i = 0; i < countBlock; i++) {
-                    matrix[matrixColumn + i][matrixRow + i].blockPainted = false;
+                    matrix[matrixColumn + i][matrixRow + i].clearing = true;
+                    matrix[matrixColumn + i][matrixRow + i].clearTimer = 0;
                 }
                 cleared = true;
             }
@@ -470,7 +775,8 @@ function diagonalUpRightGemClear() {
             // Clears the cells with the same color
             if (countBlock >= 3) {
                 for (let i = 0; i < countBlock; i++) {
-                    matrix[matrixColumn + i][matrixRow - i].blockPainted = false;
+                    matrix[matrixColumn + i][matrixRow - i].clearing = true;
+                    matrix[matrixColumn + i][matrixRow - i].clearTimer = 0;
                 }
                 cleared = true;
             }
@@ -516,26 +822,20 @@ function setUnremovedGems() {
     return moved;
 }
 
-// Function for waterfall effect with the functions of clearing and setting gems
-function updateMatrixAfterClear() {
+// Function for detecting the "clearing" state
+function detectClears() {
 
-    let somethingHappened;
+    const clearedVertical = verticalGemClear();
+    const clearedHorizontal = horizontalGemClear();
+    const clearedDiagonalUR = diagonalUpRightGemClear();
+    const clearedDiagonalDR = diagonalDownRightGemClear();
 
-    do {
-
-        const clearedVertical = verticalGemClear();
-        const clearedHorizontal = horizontalGemClear();
-        const clearedDiagonalUR = diagonalUpRightGemClear();
-        const clearedDiagonalDR = diagonalDownRightGemClear();
-        const movedGemDown = setUnremovedGems();
-
-        somethingHappened = clearedVertical || clearedHorizontal || clearedDiagonalDR || clearedDiagonalUR || movedGemDown;
-
-    } while (somethingHappened);
+    const anyClear = clearedVertical || clearedHorizontal || clearedDiagonalUR || clearedDiagonalDR;
 
     displayScore();
     displayNumberGemsCleared();
 
+    return anyClear;
 }
 
 // Function for horizontal movement of the gems
@@ -617,12 +917,14 @@ function swapGemColor(dt) {
             gem[0][0].color = gem[0][1].color;
             gem[0][1].color = gem[0][2].color;
             gem[0][2].color = storeTempColorZ;
+            playSoundEffect(sfxSwapGems);
         }
         if (xpressed) {
             let storeTempColorX = gem[0][0].color;
             gem[0][0].color = gem[0][2].color;
             gem[0][2].color = gem[0][1].color;
             gem[0][1].color = storeTempColorX;
+            playSoundEffect(sfxSwapGems);
         }
     }
 }
@@ -630,44 +932,36 @@ function swapGemColor(dt) {
 // Function for sending the gems to the end of the available space
 function instantFall() {
 
-if (gameOver) {
+    if (gameOver) {
         return;
     }
 
-    let lowerGemPosition = Math.floor(gem[0][2].y / squareSide);
-    let fallingGemLimitCanvas = lowerGemPosition < MAX_MATRIX_ROWS - 1;
+    let bottomX = Math.floor(gem[0][2].x / squareSide);
+    let bottomY = Math.floor(gem[0][2].y / squareSide);
 
-    const MAX_ITERATION = 1;
-    let counterIteration = 0;
+    let canMoveDown = true;
 
-    for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
-        for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+    if (bottomY >= MAX_MATRIX_ROWS - 1 || matrix[bottomX][bottomY + 1].blockPainted) {
+        canMoveDown = false;
+    }
 
-            let xGemFall = Math.floor(gem[gemColumn][gemRow].x / squareSide);
-            let yGemFall = Math.floor(gem[gemColumn][gemRow].y / squareSide);
-            let yNextGemFall = yGemFall + 1;
-            let matrixNextCellPainted = false;
-
-            if (yNextGemFall < MAX_MATRIX_ROWS) {
-                matrixNextCellPainted = matrix[xGemFall][yNextGemFall].blockPainted;
-            } else {
-                matrixNextCellPainted = true;
-            }
-
-
-            if (fallingGemLimitCanvas && !matrixNextCellPainted) {
+    if (canMoveDown) {
+        for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+            for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
                 gem[gemColumn][gemRow].y += dyGem;
             }
-            if ((!fallingGemLimitCanvas || matrixNextCellPainted) && counterIteration < MAX_ITERATION) {
-                setMatrixBlockColor();
-                updateMatrixAfterClear();
+        }
+    } else {
 
-                setCurrentGemColor();
-                generateNextGemRandomColor();
+        playSoundEffect(sfxGemReachingEnd);
+        setMatrixBlockColor();
 
-                initialPosition();
-                counterIteration++;
-            }
+        if (detectClears()) {
+            gameState = "clearing";
+        } else {
+            setCurrentGemColor();
+            generateNextGemRandomColor();
+            initialPosition();
         }
     }
 }
@@ -717,40 +1011,42 @@ function fallingGem(dt) {
 
         fallingGemAccumulator = 0;
 
-        let lowerGemPosition = Math.floor(gem[0][2].y / squareSide);
-        let fallingGemLimitCanvas = lowerGemPosition < MAX_MATRIX_ROWS - 1;
+        let bottomX = Math.floor(gem[0][2].x / squareSide);
+        let bottomY = Math.floor(gem[0][2].y / squareSide);
 
-        const MAX_ITERATION = 1;
-        let counterIteration = 0;
+        let canMoveDown = true;
 
-        for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
-            for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
+        if (bottomY >= MAX_MATRIX_ROWS - 1 || matrix[bottomX][bottomY + 1].blockPainted) {
+            canMoveDown = false;
+        }
 
-                let xGemFall = Math.floor(gem[gemColumn][gemRow].x / squareSide);
-                let yGemFall = Math.floor(gem[gemColumn][gemRow].y / squareSide);
-                let yNextGemFall = yGemFall + 1;
-                let matrixNextCellPainted = false;
-
-                if (yNextGemFall < MAX_MATRIX_ROWS) {
-                    matrixNextCellPainted = matrix[xGemFall][yNextGemFall].blockPainted;
-                } else {
-                    matrixNextCellPainted = true;
-                }
-
-
-                if (fallingGemLimitCanvas && !matrixNextCellPainted) {
+        if (canMoveDown) {
+            for (let gemColumn = 0; gemColumn < MAX_GEM_COLUMNS; gemColumn++) {
+                for (let gemRow = 0; gemRow < MAX_GEM_ROWS; gemRow++) {
                     gem[gemColumn][gemRow].y += dyGem;
                 }
-                if ((!fallingGemLimitCanvas || matrixNextCellPainted) && counterIteration < MAX_ITERATION) {
-                    setMatrixBlockColor();
-                    updateMatrixAfterClear();
+            }
+        }
 
-                    setCurrentGemColor();
-                    generateNextGemRandomColor();
+        let newBottomY = Math.floor(gem[0][2].y / squareSide);
 
-                    initialPosition();
-                    counterIteration++;
-                }
+        if (newBottomY >= MAX_MATRIX_ROWS - 1) {
+            canMoveDown = false;
+        } else if (matrix[bottomX][newBottomY + 1].blockPainted && gem[0][2].y % squareSide === 0) {
+            canMoveDown = false;
+        }
+
+        if (!canMoveDown) {
+
+            playSoundEffect(sfxGemReachingEnd);
+            setMatrixBlockColor();
+
+            if (detectClears()) {
+                gameState = "clearing";
+            } else {
+                setCurrentGemColor();
+                generateNextGemRandomColor();
+                initialPosition();
             }
         }
     }
@@ -767,39 +1063,28 @@ function drawMotion() {
     uiCtx.clearRect(0, 0, uiCanvasWidth, uiCanvasHeight);
 
     drawMatrixVolumeEffect();
-    paintMatrixBlock();
 
-    if (!gameOver) {
+    if (gameOver) {
 
-        drawGems();
-        displayGemNextColors();
+        clearBlocks();
 
-        swapGemColor(dt);
-
-        if (spacepressed) {
-            instantFall();
-        }
-
-        horizontalMovement(dt);
-        difficultyUp();
-
-        if (!spacepressed) {
-            fallingGem(dt);
-        }
-
-        myReq = requestAnimationFrame(drawMotion);
-
-    } else {
-
-        cancelAnimationFrame(myReq);
-        resetGame();
-        document.fonts.load(fontGameOver).then(() => { // ensure fonts are loaded
+        document.fonts.load(fontGameOver).then(() => {
             drawGameOver();
-        });
-        runButton.disabled = false;
+        })
+
+        playButton.disabled = false;
+
         return;
 
     }
+
+    paintMatrixBlock();
+
+    displayGemNextColors();
+
+    state[gameState]();
+
+    myReq = requestAnimationFrame(drawMotion);
 
 }
 
@@ -841,32 +1126,78 @@ function startGame() {
     initialPosition();
     drawMotion();
     generateNextGemRandomColor();
+    bgMusic.play();
 }
 
-// Button start game
-const runButton = document.getElementById("runButton");
-runButton.addEventListener("click", () => {
+// Intro button event
+introButton.addEventListener("click", () => {
+    chuquitoAtaquerl.play();
+    transitionToIntroScenes();
+});
+
+// Go to game screen
+playButton.addEventListener("click", () => {
+    cancelAnimationFrame(myReq);
+
+    screenMenu.classList.replace("screen-on", "screen-off")
+    screenGame.classList.replace("screen-off", "screen-on")
+
+    bgMenuMusic.pause();
+    bgMenuMusic.currentTime = 0;
+    //poner cuenta atrás
+    resetGame();
     startGame();
-    displayScore();
-    displayNumberGemsCleared();
-    displayDifficultyLevel();
-    runButton.disabled = true;
+    playButton.disabled = true;
+});
+
+// Reset button in game
+resetButton.addEventListener("click", () => {
+    cancelAnimationFrame(myReq); 
+    resetGame();
+    startGame();
+});
+
+// Got to menu from screen game
+menuButton.addEventListener("click", () => {
+    cancelAnimationFrame(myReq);
+
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+    bgMenuMusic.play();
+    
+    screenGame.classList.replace("screen-on", "screen-off");
+    screenMenu.classList.replace("screen-off", "screen-on");
+
+    playButton.disabled = false;
+});
+
+// Go to controls screen
+controlsButton.addEventListener("click", () => {
+    screenControls.classList.replace("screen-off", "screen-on")
+});
+
+// Go back to menu
+backButton.addEventListener("click", () => {
+    screenControls.classList.replace("screen-on", "screen-off")
 });
 
 // Show score
 function displayScore() {
-    const displayScore = document.getElementById("scoringBackgroundSpace");
+    const displayScore = document.getElementById("scoring-background-space");
     displayScore.innerHTML = score;
-}
+};
 
 // Show gems cleared
 function displayNumberGemsCleared() {
-    const displayGemsCleared = document.getElementById("numberGemsBackgroundSpace");
+    const displayGemsCleared = document.getElementById("number-gems-background-space");
     displayGemsCleared.innerHTML = totalGemsCleared;
-}
+};
 
 // Show difficulty level
 function displayDifficultyLevel() {
-    const displayDifficultyLevel = document.getElementById("difficultyBackgroundSpace");
+    const displayDifficultyLevel = document.getElementById("difficulty-background-space");
     displayDifficultyLevel.innerHTML = difficultyCounter;
-}
+};
+
+// To load the inital button after everything is loaded
+window.onload = enableIntroButton;

@@ -4,77 +4,250 @@
 }
 
 body {
+    background-color: #000;
+}
+
+#game-viewport {
+    position: relative;
+    width: 1200px;
+    height: 730px;
+    overflow: hidden;
+    margin: 0 auto;
+    border: 2px solid #333;
+    background-color: #000;
+}
+
+.initial-button-format {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 36px;
+    background-color: black;
+    color: white;
+    border: 4px solid #ffffff;
+    padding: 20px 40px;
+    cursor: pointer;
+    width: auto;
+    height: auto;
+    margin-bottom: 50px;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out
+}
+
+.initial-button-format:hover {
+    background-color: white;
+    color: black;
+    transform: scale(1.1);
+}
+
+/* Show screens */
+.screen-on {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+/* Hide screens */
+.screen-off {
+    display: none !important;
+}
+
+/* All intro scenes start hidden */
+.intro-first-scene, .intro-second-scene {
+    position: absolute; /* To not push the other down */
+    width: 100%;
+    text-align: center;
+    opacity: 1;
+}
+
+/* Class to apply with JS to show the item on screen */
+.fade-in {
+    opacity: 1 !important;
+}
+
+.intro-title-format {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 24px;
+    color: white;
+    margin: 20px 0;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out
+}
+
+.intro-subtitle-format {
+    font-family: 'DotGothic16', sans-serif;
+    font-size: 18px;
+    color: gold;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out
+}
+
+.screen-menu {
+    background-image: url("images/ziggurat_main_screen.png");
+    background-size: 100% 100%;
+}
+
+.menu-button-format {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 24px;
+    background-color: transparent;
+    color: white;
+    border: 3px solid white;
+    padding: 15px 30px;
+    margin: 10px;
+    cursor: pointer;
+    width: 300px;
+    transition: all 0.2s;
+}
+
+.menu-button-format:hover {
+    background-color: white;
+    color: black;
+    transform: scale(1.05);
+}
+
+.controls-button-format {
+    font-size: 18px; 
+    margin-top: 20px;
+}
+
+.controls-card {
+    border: 4px double white;
+    padding: 40px;
+    background: black;
+    text-align: left;
+}
+
+.controls-list {
+    list-style: none;
+    font-family: 'DotGothic16', sans-serif;
+    color: white;
+    font-size: 24px;
+    line-height: 2;
+    margin: 20px 0;
+}
+
+.controls-list span {
+    color: gold;
+    margin-right: 15px;
+}
+
+.screen-game {
     background-image: url("images/background_pattern_green_blue.PNG");
-}
-
-.gameElements {
-    display: flex;
+    display: flex; 
+    flex-direction: row;
     justify-content: center;
-    margin: 0 10px;
+    align-items: center;
+    gap: 40px;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
 }
 
-.canvasContainer {
-    display: block;
+.canvas-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#gameCanvas {
+#game-canvas {
     display: block;
-    margin: 10px auto;
+    margin: 0;
+    background: black;
+    border: 3px solid #333;
+}
+
+.game-side-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    min-width: 250px;
+    justify-content: center;
+    align-items: center;
+}
+
+.small-button-format {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px;
+    background-color: black;
+    color: white;
+    border: 2px solid white;
+    padding: 15px 10px;
+    cursor: pointer;
+    width: 200px;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.small-button-format:hover {
+    background-color: white; 
+    color: black;
+    transform: scale(1.05);
+}
+
+#menu-button:hover {
+    background-color: #1040c4;
+    border-color: #0066ff;
+}
+
+.in-game-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    text-align: left;
+    min-width: 250px;
+    gap: 25px;
+}
+
+.next-gem-display {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+#ui-canvas {
+    display: block;
     background: black;
 }
 
-.inGameInfo {
+.game-statistics {
     display: flex;
     flex-direction: column;
-    justify-content: space-evenly;
+    justify-content: center;
+    gap: 20px;
+}
+
+.ui-scoreboard {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     padding-left: 10px;
-}
-
-.nextGemDisplay {
-    display: flex;
-    justify-content: center;
-
-}
-
-#uiCanvas {
-    display: block;
+    width: 100%;
     background: black;
+    font-family: "DotGothic16", sans-serif;
+    font-weight: 400;
+    font-size: xx-large;
+    font-style: italic;
 }
 
-.gameStatistics {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-#scoringBackgroundSpace {
+.ui-title {
     display: block;
-    width: 60px;
-    height: 30px;
-    background: black;
+    color: gold;
+}
+
+.ui-value {
+    display: block;
     color: white;
-    margin: 5px 0;
 }
 
-#numberGemsBackgroundSpace {
-    display: block;
-    width: 60px;
-    height: 30px;
-    background: black;
-    color: white;
-    margin: 5px 0;
-}
-
-#difficultyBackgroundSpace {
-    display: block;
-    width: 60px;
-    height: 30px;
-    background: black;
-    color: white;
-    margin: 5px 0;
-}
-
-#runButton {
+#run-button {
     display: block;
     margin: 0 auto;
 }
