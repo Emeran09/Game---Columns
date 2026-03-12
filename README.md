@@ -348,3 +348,9 @@ After a while without uploading, full game, beta version is released!! As lot of
 
 * Full flow of the game implemented and transitions between menus
 
+--------------------------------------------------------------------
+
+!!! v1.1 - Bug refinement !!!
+
+* Fixed bug where spacebar triggered unintended UI button clicks due to retained keyboard focus. UI buttons (Play, Reset, Menu) retained keyboard focus after being clicked. The browser interpreted spacebar presses during gameplay as new clicks on the active button. Added .blur() to remove focus from buttons immediately after clicking.
+

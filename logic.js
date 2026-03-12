@@ -170,6 +170,7 @@ const chuquitoAtaquerl = new Audio("audio/chiquito_al_ataquerl.mp3");
 
 // ---------------- ANIMATION VARIABLES -----------------
 
+let transitionInitiated = false;
 const introButton = document.querySelector(".initial-button-format");
 const screenIntro = document.querySelector(".screen-intro");
 const firstScene = document.querySelector(".intro-first-scene");
@@ -211,8 +212,7 @@ function transitionToIntroScenes() {
     setTimeout(() => {
         introButton.classList.remove("fade-in")
         setTimeout(() => {
-            introButton.classList.remove("screen-on")
-            introButton.classList.add("screen-off")
+            introButton.classList.replace("screen-on", "screen-off")
             runIntro();
         }, 1500);
     }, 500);
@@ -222,7 +222,7 @@ function transitionToIntroScenes() {
 // Function to convert callback hell into promises
 function wait(ms) {
     return new Promise(function (resolve) {
-        setTimeout(resolve, ms);
+        setTimeout(() => {resolve()}, ms);
     });
 }
 
@@ -1124,6 +1124,9 @@ function keyUpHandler(event) {
 function startGame() {
     setInitialGemRandomColor();
     initialPosition();
+
+    lastTime = timestamp();
+
     drawMotion();
     generateNextGemRandomColor();
     bgMusic.play();
@@ -1131,12 +1134,23 @@ function startGame() {
 
 // Intro button event
 introButton.addEventListener("click", () => {
+    if (transitionInitiated) {
+        return; 
+    }
+
+    transitionInitiated = true;
+
+    introButton.blur(); 
+
     chuquitoAtaquerl.play();
     transitionToIntroScenes();
 });
 
 // Go to game screen
 playButton.addEventListener("click", () => {
+
+    playButton.blur();
+
     cancelAnimationFrame(myReq);
 
     screenMenu.classList.replace("screen-on", "screen-off")
@@ -1152,6 +1166,9 @@ playButton.addEventListener("click", () => {
 
 // Reset button in game
 resetButton.addEventListener("click", () => {
+
+    resetButton.blur();
+
     cancelAnimationFrame(myReq); 
     resetGame();
     startGame();
@@ -1159,6 +1176,9 @@ resetButton.addEventListener("click", () => {
 
 // Got to menu from screen game
 menuButton.addEventListener("click", () => {
+
+    menuButton.blur();
+
     cancelAnimationFrame(myReq);
 
     bgMusic.pause();
