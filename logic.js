@@ -165,7 +165,7 @@ const sfxGemClear = new Audio("audio/sfx_gem_clear.wav");
 sfxGemClear.onloadedmetadata = function () {
     sfxGemClear.playbackRate = sfxGemClear.duration / TOTAL_ANIMATION_DURATION;
 }
-const chiquitoProfeCeo = new Audio("audio/chiquito_el_profe_CEO.mp3");
+const chiquitoCasasCode = new Audio("audio/chiquito_casas_code.mp3");
 const chuquitoAtaquerl = new Audio("audio/chiquito_al_ataquerl.mp3");
 
 // ---------------- ANIMATION VARIABLES -----------------
@@ -253,7 +253,7 @@ async function runIntro() {
     await wait(1500);
 
     davidCompanyTitle.classList.add("fade-in")
-    chiquitoProfeCeo.play();
+    chiquitoCasasCode.play();
     await wait(1500);
 
     collaborationTitle.classList.remove("fade-in")
